@@ -1,18 +1,18 @@
-import { Popover as PopoverPrimitive } from "@base-ui/react/popover"
+import { Popover as PopoverPrimitive } from '@base-ui/react/popover'
 
-import { cn } from "@/lib/utils"
+import { cn } from '@/lib/utils'
 
 const Popover = PopoverPrimitive.Root
 const PopoverTrigger = PopoverPrimitive.Trigger
 
 function PopoverContent({
   className,
-  side = "bottom",
+  side = 'bottom',
   sideOffset = 4,
-  align = "start",
+  align = 'start',
   ...props
 }: PopoverPrimitive.Popup.Props &
-  Pick<PopoverPrimitive.Positioner.Props, "side" | "sideOffset" | "align">) {
+  Pick<PopoverPrimitive.Positioner.Props, 'side' | 'sideOffset' | 'align'>) {
   return (
     <PopoverPrimitive.Portal>
       <PopoverPrimitive.Positioner
@@ -25,8 +25,8 @@ function PopoverContent({
           data-slot="popover-content"
           data-ground="menu"
           className={cn(
-            "origin-(--transform-origin) rounded-2xl border-[0.5px] border-border bg-popover p-2 text-popover-foreground shadow-medium duration-100 outline-none data-open:enter-zoom data-closed:exit-zoom",
-            className
+            'origin-(--transform-origin) rounded-2xl border-[0.5px] border-border bg-popover p-2 text-popover-foreground shadow-medium duration-100 outline-none data-open:enter-zoom data-closed:exit-zoom',
+            className,
           )}
           {...props}
         />

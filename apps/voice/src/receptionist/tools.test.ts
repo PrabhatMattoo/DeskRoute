@@ -62,14 +62,16 @@ describe("every tool returns a result to the model", () => {
     const tools = createAgentTools(okCalendar());
     const result = await tools.checkAvailability.execute(
       { service: "Haircut", preferredDate: null, partOfDay: null },
-      runCtx()
+      runCtx(),
     );
 
     expect(typeof result, "a tool must never resolve to a function").not.toBe("function");
     expect(result).toBeDefined();
     // Either real slots or an explicit note — never undefined, never a closure.
     expect(result).toEqual(
-      expect.objectContaining({ ...(("slots" in result!) ? {} : { note: expect.anything() }) })
+      expect.objectContaining({
+        ...("slots" in result! ? {} : { note: expect.anything() }),
+      }),
     );
     expect("slots" in result! || "note" in result! || "error" in result!).toBe(true);
   });
@@ -78,7 +80,7 @@ describe("every tool returns a result to the model", () => {
     const tools = createAgentTools(okCalendar());
     const result = await tools.bookAppointment.execute(
       { slotId: "nope", callerName: "Prabhat" },
-      runCtx()
+      runCtx(),
     );
 
     expect(typeof result).not.toBe("function");
@@ -92,7 +94,7 @@ describe("every tool returns a result to the model", () => {
     // Offer a slot first, exactly as a real call does.
     const offered = (await tools.checkAvailability.execute(
       { service: "Haircut", preferredDate: null, partOfDay: null },
-      runCtx()
+      runCtx(),
     )) as { slots?: { slotId: string }[] };
 
     const slotId = offered.slots?.[0]?.slotId;
@@ -100,7 +102,7 @@ describe("every tool returns a result to the model", () => {
 
     const result = await tools.bookAppointment.execute(
       { slotId: slotId!, callerName: "Prabhat" },
-      runCtx()
+      runCtx(),
     );
 
     expect(typeof result).not.toBe("function");
@@ -119,7 +121,7 @@ describe("every tool returns a result to the model", () => {
     const tools = createAgentTools(okCalendar());
     const result = await tools.cancelAppointment.execute(
       { appointmentId: "appt-1" },
-      runCtx()
+      runCtx(),
     );
 
     expect(typeof result).not.toBe("function");
@@ -130,7 +132,7 @@ describe("every tool returns a result to the model", () => {
     const tools = createAgentTools(makeAgentDeps());
     const result = await tools.createEscalation.execute(
       { question: "Do you have parking?", callerName: null, transcriptExcerpt: null },
-      escalationCtx()
+      escalationCtx(),
     );
 
     expect(typeof result).not.toBe("function");
@@ -145,12 +147,12 @@ describe("a slot another caller took first", () => {
     const tools = createAgentTools(okCalendar());
     const offered = (await tools.checkAvailability.execute(
       { service: "Haircut", preferredDate: null, partOfDay: null },
-      runCtx()
+      runCtx(),
     )) as { slots?: { slotId: string }[] };
 
     return tools.bookAppointment.execute(
       { slotId: offered.slots![0]!.slotId, callerName: slotCallerName },
-      runCtx()
+      runCtx(),
     );
   };
 
@@ -196,7 +198,7 @@ describe("the caller's name", () => {
     const tools = createAgentTools(makeAgentDeps());
     await tools.createEscalation.execute(
       { question: "Do you take cats?", callerName: "Dana", transcriptExcerpt: null },
-      escalationCtx()
+      escalationCtx(),
     );
 
     expect(vi.mocked(createEscalation).mock.calls[0]?.[0]).toMatchObject({
@@ -208,7 +210,7 @@ describe("the caller's name", () => {
     const tools = createAgentTools(makeAgentDeps());
     await tools.createEscalation.execute(
       { question: "Do you take cats?", callerName: null, transcriptExcerpt: null },
-      escalationCtx()
+      escalationCtx(),
     );
 
     expect(vi.mocked(createEscalation).mock.calls[0]?.[0]).toMatchObject({
@@ -219,11 +221,11 @@ describe("the caller's name", () => {
   it("falls back to the name already on the client row", async () => {
     // A returning caller who does not say their name again is still known.
     const tools = createAgentTools(
-      makeAgentDeps({ caller: { id: "cli-1", name: "Marcus" } as never })
+      makeAgentDeps({ caller: { id: "cli-1", name: "Marcus" } as never }),
     );
     await tools.createEscalation.execute(
       { question: "Do you take cats?", callerName: null, transcriptExcerpt: null },
-      escalationCtx()
+      escalationCtx(),
     );
 
     expect(vi.mocked(createEscalation).mock.calls[0]?.[0]).toMatchObject({
@@ -240,11 +242,11 @@ describe("the caller's name", () => {
     } as never);
 
     const tools = createAgentTools(
-      makeAgentDeps({ caller: { id: "cli-1", name: null } as never })
+      makeAgentDeps({ caller: { id: "cli-1", name: null } as never }),
     );
     await tools.createEscalation.execute(
       { question: "Do you take cats?", callerName: "  Dana  ", transcriptExcerpt: null },
-      escalationCtx()
+      escalationCtx(),
     );
 
     expect(vi.mocked(setCallerName)).toHaveBeenCalledWith(

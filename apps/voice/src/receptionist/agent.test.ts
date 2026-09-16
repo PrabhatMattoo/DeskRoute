@@ -31,7 +31,7 @@ describe("ReceptionistAgent", () => {
         "cancelAppointment",
         "endCall",
         "rememberCallerName",
-      ])
+      ]),
     );
   });
 
@@ -49,7 +49,7 @@ describe("ReceptionistAgent", () => {
     const agent = new ReceptionistAgent(
       makeAgentDeps({
         knowledge: [{ question: "Do you have parking?", answer: "Yes, free lot." }],
-      })
+      }),
     );
 
     expect(agent.instructions).toContain("Do you have parking?");

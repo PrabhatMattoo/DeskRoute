@@ -12,14 +12,17 @@ export async function countAfterHoursCalls(
   agentId: string,
   since: Date,
   hours: BusinessHours,
-  timeZone: string
+  timeZone: string,
 ): Promise<number> {
   const rows = await db
     .select({ startedAt: calls.startedAt })
     .from(calls)
     .where(and(eq(calls.agentId, agentId), gte(calls.startedAt, since)));
 
-  return rows.reduce((n, r) => n + (isAfterHours(r.startedAt, hours, timeZone) ? 1 : 0), 0);
+  return rows.reduce(
+    (n, r) => n + (isAfterHours(r.startedAt, hours, timeZone) ? 1 : 0),
+    0,
+  );
 }
 
 export async function countCalls(agentId: string, since: Date): Promise<number> {
@@ -38,13 +41,16 @@ export async function countAbandonedCalls(agentId: string, since: Date): Promise
       and(
         eq(calls.agentId, agentId),
         eq(calls.outcome, "abandoned"),
-        gte(calls.startedAt, since)
-      )
+        gte(calls.startedAt, since),
+      ),
     );
   return Number(rows[0]!.count);
 }
 
-export async function countConfirmedBookings(agentId: string, since: Date): Promise<number> {
+export async function countConfirmedBookings(
+  agentId: string,
+  since: Date,
+): Promise<number> {
   const rows = await db
     .select({ count: count() })
     .from(appointments)
@@ -52,8 +58,8 @@ export async function countConfirmedBookings(agentId: string, since: Date): Prom
       and(
         eq(appointments.agentId, agentId),
         eq(appointments.status, "confirmed"),
-        gte(appointments.createdAt, since)
-      )
+        gte(appointments.createdAt, since),
+      ),
     );
   return Number(rows[0]!.count);
 }

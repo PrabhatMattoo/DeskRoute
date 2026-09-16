@@ -18,10 +18,7 @@ export type { Disclosure } from "@receptionist/shared";
  * Falls back to the disclosure alone when the greeting is blank. Returns the
  * version with the text, so a call cannot be stamped with a wording it never heard.
  */
-export function buildGreeting(
-  agentGreeting: string,
-  recordCalls: boolean
-): Disclosure {
+export function buildGreeting(agentGreeting: string, recordCalls: boolean): Disclosure {
   const disclosure = disclosureFor(recordCalls);
   const greeting = agentGreeting.trim();
 

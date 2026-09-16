@@ -2,7 +2,10 @@ import { Hono } from "hono";
 import { getAuth } from "@clerk/hono";
 import type { AppEnv } from "../../types.js";
 import { getAgentById, updateAgent } from "@receptionist/core/repositories/agents.js";
-import { listCalendars, CalendarScopeMissingError } from "@receptionist/core/providers/calendar.js";
+import {
+  listCalendars,
+  CalendarScopeMissingError,
+} from "@receptionist/core/providers/calendar.js";
 import {
   getGoogleOAuthToken,
   forgetGoogleOAuthToken,

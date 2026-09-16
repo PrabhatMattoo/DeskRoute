@@ -22,11 +22,11 @@ export function toneToClasses(tone: StatusTone): string {
 export type StatusEntry = { label: string; tone: StatusTone }
 
 export const callOutcomeConfig: Record<CallOutcome, StatusEntry> = {
-  booked:    { label: 'Booked',    tone: 'fact' },
+  booked: { label: 'Booked', tone: 'fact' },
   escalated: { label: 'Escalated', tone: 'waiting' },
-  answered:  { label: 'Answered',  tone: 'quiet' },
+  answered: { label: 'Answered', tone: 'quiet' },
   abandoned: { label: 'Abandoned', tone: 'quiet' },
-  error:     { label: 'Error',     tone: 'failed' },
+  error: { label: 'Error', tone: 'failed' },
 }
 
 export const appointmentStatusConfig: Record<AppointmentStatus, StatusEntry> = {
@@ -36,6 +36,6 @@ export const appointmentStatusConfig: Record<AppointmentStatus, StatusEntry> = {
 }
 
 export const escalationStatusConfig: Record<EscalationStatus, StatusEntry> = {
-  pending:  { label: 'Pending',  tone: 'waiting' },
+  pending: { label: 'Pending', tone: 'waiting' },
   resolved: { label: 'Resolved', tone: 'quiet' },
 }

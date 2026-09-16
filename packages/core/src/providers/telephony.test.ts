@@ -35,7 +35,7 @@ describe("searchPhoneNumbers", () => {
   it("says what to do instead", async () => {
     // The message reaches the owner, so it has to be an instruction.
     await expect(searchPhoneNumbers("50")).rejects.toThrow(
-      /three digits, or leave it blank/i
+      /three digits, or leave it blank/i,
     );
   });
 

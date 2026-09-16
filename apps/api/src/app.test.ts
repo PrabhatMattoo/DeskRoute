@@ -33,7 +33,7 @@ describe("CORS", () => {
         headers: { Origin: `http://localhost:${port}` },
       });
       expect(res.headers.get("access-control-allow-origin")).toBe(
-        `http://localhost:${port}`
+        `http://localhost:${port}`,
       );
     }
   });
@@ -58,7 +58,7 @@ describe("CORS", () => {
       headers: { Origin: "https://app.deskroute.com" },
     });
     expect(real.headers.get("access-control-allow-origin")).toBe(
-      "https://app.deskroute.com"
+      "https://app.deskroute.com",
     );
   });
 

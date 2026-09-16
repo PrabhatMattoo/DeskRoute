@@ -79,8 +79,8 @@ export function CallStats({
           >
             <span>
               <span className="font-medium">{pendingEscalations}</span>{' '}
-              {plural(pendingEscalations, 'question is', 'questions are')} waiting for your
-              answer.
+              {plural(pendingEscalations, 'question is', 'questions are')} waiting for
+              your answer.
             </span>
             <ArrowRight className="size-4 shrink-0" />
           </Link>

@@ -63,14 +63,14 @@ describe("zonedWallClockToUtc", () => {
   it("converts a summer wall clock at the eastern offset", () => {
     // EDT is UTC-4, so 09:00 in New York is 13:00 UTC.
     expect(zonedWallClockToUtc("2026-08-19", "09:00", NY).toISOString()).toBe(
-      "2026-08-19T13:00:00.000Z"
+      "2026-08-19T13:00:00.000Z",
     );
   });
 
   it("converts a winter wall clock at the other offset", () => {
     // EST is UTC-5, so the same wall clock is a different instant in January.
     expect(zonedWallClockToUtc("2026-01-19", "09:00", NY).toISOString()).toBe(
-      "2026-01-19T14:00:00.000Z"
+      "2026-01-19T14:00:00.000Z",
     );
   });
 
@@ -93,7 +93,7 @@ describe("zonedWallClockToUtc", () => {
 
   it("handles a zone with a half-hour offset", () => {
     expect(zonedWallClockToUtc("2026-08-19", "09:00", "Asia/Kolkata").toISOString()).toBe(
-      "2026-08-19T03:30:00.000Z"
+      "2026-08-19T03:30:00.000Z",
     );
   });
 
@@ -416,7 +416,10 @@ describe("describeDate", () => {
 });
 
 describe("findService", () => {
-  const services = [service({ id: "a", name: "Haircut" }), service({ id: "b", name: "Colour" })];
+  const services = [
+    service({ id: "a", name: "Haircut" }),
+    service({ id: "b", name: "Colour" }),
+  ];
 
   it("matches exactly", () => {
     expect(findService(services, "Haircut")?.id).toBe("a");

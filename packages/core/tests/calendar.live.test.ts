@@ -71,7 +71,7 @@ async function resolveContext(): Promise<{ ctx: LiveContext | null; reason?: str
     .where(
       override
         ? eq(agents.id, override)
-        : and(isNotNull(agents.calendarExternalId), isNotNull(agents.clerkUserId))
+        : and(isNotNull(agents.calendarExternalId), isNotNull(agents.clerkUserId)),
     )
     .limit(1);
 
@@ -104,7 +104,10 @@ async function resolveContext(): Promise<{ ctx: LiveContext | null; reason?: str
       token,
       timeZone: agent.timezone,
       hours: agent.businessHours,
-      policy: { minNoticeMinutes: agent.minNoticeMinutes, maxAdvanceDays: agent.maxAdvanceDays },
+      policy: {
+        minNoticeMinutes: agent.minNoticeMinutes,
+        maxAdvanceDays: agent.maxAdvanceDays,
+      },
     },
   };
 }
@@ -124,8 +127,8 @@ afterAll(async () => {
       (err: unknown) =>
         console.error(
           `[live] could not clean up event ${strandedEventId} — delete it by hand:`,
-          err
-        )
+          err,
+        ),
     );
   }
   // The pool holds live sockets on purpose (keepAlive, 30s idle), and those are
@@ -161,14 +164,14 @@ describe.skipIf(ctx === null)("Google Calendar, for real", () => {
     expect(
       candidates.length,
       `no candidate slots in ${SEARCH_DAYS} days from ${fromDate} — check the ` +
-        `agent's opening hours, every weekday may be closed`
+        `agent's opening hours, every weekday may be closed`,
     ).toBeGreaterThan(0);
 
     const searchBusy = await fetchBusyRanges(
       live.token,
       live.calendarId,
       candidates[0]!.blockStart.toISOString(),
-      candidates.at(-1)!.blockEnd.toISOString()
+      candidates.at(-1)!.blockEnd.toISOString(),
     );
 
     const free = filterByBusy(candidates, searchBusy);
@@ -195,7 +198,7 @@ describe.skipIf(ctx === null)("Google Calendar, for real", () => {
         live.token,
         live.calendarId,
         windowMin,
-        windowMax
+        windowMax,
       );
 
       // An event written over start-end rather than the block reports a busy
@@ -203,15 +206,15 @@ describe.skipIf(ctx === null)("Google Calendar, for real", () => {
       const covers = busyAfter.some(
         (b) =>
           b.start.getTime() <= slot.blockStart.getTime() &&
-          b.end.getTime() >= slot.blockEnd.getTime()
+          b.end.getTime() >= slot.blockEnd.getTime(),
       );
       expect(
         covers,
         `no busy range covers the padded block ` +
           `${slot.blockStart.toISOString()}–${slot.blockEnd.toISOString()}; ` +
           `Google returned ${JSON.stringify(
-            busyAfter.map((b) => [b.start.toISOString(), b.end.toISOString()])
-          )}`
+            busyAfter.map((b) => [b.start.toISOString(), b.end.toISOString()]),
+          )}`,
       ).toBe(true);
 
       // And the slot the agent would have offered is now correctly withheld.
@@ -226,13 +229,13 @@ describe.skipIf(ctx === null)("Google Calendar, for real", () => {
       live.token,
       live.calendarId,
       slot.blockStart.toISOString(),
-      slot.blockEnd.toISOString()
+      slot.blockEnd.toISOString(),
     );
     expect(filterByBusy([slot], busyFinal)).toHaveLength(1);
 
     console.log(
       `[live] verified padded block for "${live.businessName}" at ` +
-        `${describeSlot(slot, live.timeZone)} (${live.timeZone})`
+        `${describeSlot(slot, live.timeZone)} (${live.timeZone})`,
     );
   });
 });

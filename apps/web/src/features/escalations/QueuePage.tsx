@@ -70,8 +70,8 @@ export default function QueuePage() {
     },
     onError: (err: unknown) => {
       const message =
-        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-        'Could not save that answer. Try again.'
+        (err as { response?: { data?: { message?: string } } })?.response?.data
+          ?.message || 'Could not save that answer. Try again.'
       toast.error(message)
     },
   })
@@ -94,7 +94,11 @@ export default function QueuePage() {
           title="Nothing waiting on you"
           description="Every caller question has an answer. New ones land here."
           action={
-            <Button variant="outline" render={<Link to="/escalations" />} nativeButton={false}>
+            <Button
+              variant="outline"
+              render={<Link to="/escalations" />}
+              nativeButton={false}
+            >
               See every question
             </Button>
           }
@@ -149,7 +153,10 @@ export default function QueuePage() {
           {current.callId && (
             <>
               <span aria-hidden="true">·</span>
-              <Link to={`/calls/${current.callId}`} className="text-primary hover:underline">
+              <Link
+                to={`/calls/${current.callId}`}
+                className="text-primary hover:underline"
+              >
                 hear the call
               </Link>
             </>

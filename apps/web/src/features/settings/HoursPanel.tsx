@@ -82,7 +82,12 @@ function Interval({
         className="w-field-sm"
         aria-label="Closes at"
       />
-      <Button variant="ghost" size="icon-sm" onClick={onRemove} aria-label="Remove this period">
+      <Button
+        variant="ghost"
+        size="icon-sm"
+        onClick={onRemove}
+        aria-label="Remove this period"
+      >
         <X />
       </Button>
     </div>
@@ -115,7 +120,9 @@ export function HoursPanel({ settings }: { settings: AppSettings }) {
     if (JSON.stringify(hours.weekly) !== JSON.stringify(server.businessHours.weekly)) {
       out.push('opening hours')
     }
-    if (JSON.stringify(hours.exceptions) !== JSON.stringify(server.businessHours.exceptions)) {
+    if (
+      JSON.stringify(hours.exceptions) !== JSON.stringify(server.businessHours.exceptions)
+    ) {
       out.push('holidays')
     }
     if (JSON.stringify(policy) !== JSON.stringify(server.bookingPolicy)) {
@@ -211,16 +218,25 @@ export function HoursPanel({ settings }: { settings: AppSettings }) {
                         onChange={(patch) =>
                           setDay(
                             day,
-                            intervals.map((v, idx) => (idx === i ? { ...v, ...patch } : v)),
+                            intervals.map((v, idx) =>
+                              idx === i ? { ...v, ...patch } : v,
+                            ),
                           )
                         }
-                        onRemove={() => setDay(day, intervals.filter((_, idx) => idx !== i))}
+                        onRemove={() =>
+                          setDay(
+                            day,
+                            intervals.filter((_, idx) => idx !== i),
+                          )
+                        }
                       />
                     ))}
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => setDay(day, [...intervals, { start: '14:00', end: '18:00' }])}
+                      onClick={() =>
+                        setDay(day, [...intervals, { start: '14:00', end: '18:00' }])
+                      }
                     >
                       <Plus />
                       Add a second period
@@ -238,7 +254,13 @@ export function HoursPanel({ settings }: { settings: AppSettings }) {
         title="Holidays"
         lede="Days that replace your weekly hours."
         action={
-          <Button variant="outline" size="sm" onClick={() => editDraft({ index: null, value: { date: '', intervals: [], label: '' } })}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() =>
+              editDraft({ index: null, value: { date: '', intervals: [], label: '' } })
+            }
+          >
             <Plus />
             Add a date
           </Button>
@@ -255,7 +277,11 @@ export function HoursPanel({ settings }: { settings: AppSettings }) {
                 : `${exception.label || 'Open'}. ${exception.intervals[0]!.start} to ${exception.intervals[0]!.end}.`
             }
           >
-            <Button variant="outline" size="sm" onClick={() => editDraft({ index: i, value: exception })}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => editDraft({ index: i, value: exception })}
+            >
               Edit
             </Button>
           </Row>
@@ -283,7 +309,11 @@ export function HoursPanel({ settings }: { settings: AppSettings }) {
               className="w-field-md"
             />
           </SubRow>
-          <SubRow title="Reason" description="For your own reference. Your agent never says it." htmlFor="hol-reason">
+          <SubRow
+            title="Reason"
+            description="For your own reference. Your agent never says it."
+            htmlFor="hol-reason"
+          >
             <Input
               id="hol-reason"
               className="w-field-md"
@@ -301,27 +331,40 @@ export function HoursPanel({ settings }: { settings: AppSettings }) {
             />
           </SubRow>
           {draft.value.intervals.map((interval, j) => (
-            <SubRow key={j} title="Open between" description="The hours for this one day.">
+            <SubRow
+              key={j}
+              title="Open between"
+              description="The hours for this one day."
+            >
               <Interval
                 interval={interval}
                 onChange={(next) =>
                   patch({
-                    intervals: draft.value.intervals.map((v, idx) => (idx === j ? { ...v, ...next } : v)),
+                    intervals: draft.value.intervals.map((v, idx) =>
+                      idx === j ? { ...v, ...next } : v,
+                    ),
                   })
                 }
                 onRemove={() =>
-                  patch({ intervals: draft.value.intervals.filter((_, idx) => idx !== j) })
+                  patch({
+                    intervals: draft.value.intervals.filter((_, idx) => idx !== j),
+                  })
                 }
               />
             </SubRow>
           ))}
           {intervalProblem(draft.value.intervals) && (
-            <p className="pt-2 text-destructive">{intervalProblem(draft.value.intervals)}</p>
+            <p className="pt-2 text-destructive">
+              {intervalProblem(draft.value.intervals)}
+            </p>
           )}
         </RecordDrawer>
       )}
 
-      <Section title="Booking window" lede="How near and how far ahead a caller may book.">
+      <Section
+        title="Booking window"
+        lede="How near and how far ahead a caller may book."
+      >
         <Row
           title="Earliest a caller can book"
           description="Your agent will not offer a time sooner than this, so you get some warning."
@@ -332,7 +375,9 @@ export function HoursPanel({ settings }: { settings: AppSettings }) {
             label="Minimum notice in minutes"
             unit="minutes"
             value={policy.minNoticeMinutes}
-            onChange={(minNoticeMinutes) => setPolicy((p) => ({ ...p, minNoticeMinutes }))}
+            onChange={(minNoticeMinutes) =>
+              setPolicy((p) => ({ ...p, minNoticeMinutes }))
+            }
           />
         </Row>
         <Row

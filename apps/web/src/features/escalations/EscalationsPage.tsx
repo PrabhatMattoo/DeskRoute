@@ -92,7 +92,9 @@ export default function EscalationsPage() {
     )
     const byStatus = filter === 'all' ? all : all.filter((e) => e.status === filter)
     const term = search.trim().toLowerCase()
-    return term ? byStatus.filter((e) => e.question.toLowerCase().includes(term)) : byStatus
+    return term
+      ? byStatus.filter((e) => e.question.toLowerCase().includes(term))
+      : byStatus
   }, [pending.data, resolved.data, filter, search])
 
   const groups = useMemo(() => groupByDay(rows, zone, (r) => r.createdAt), [rows, zone])

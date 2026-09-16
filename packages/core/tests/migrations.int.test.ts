@@ -14,7 +14,7 @@ import path from "node:path";
 const ADMIN_URL = process.env.DATABASE_URL!;
 const MIGRATIONS_FOLDER = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
-  "../drizzle"
+  "../drizzle",
 );
 
 let scratchDb: string | null = null;
@@ -65,7 +65,7 @@ describe("migration chain", () => {
           "knowledge_items",
           "phone_numbers",
           "services",
-        ])
+        ]),
       );
     } finally {
       await pool.end();

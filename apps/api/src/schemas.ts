@@ -13,7 +13,7 @@ const ianaTimezone = z.string().refine(
       return false;
     }
   },
-  { message: "Unknown timezone. Use an IANA name such as America/New_York." }
+  { message: "Unknown timezone. Use an IANA name such as America/New_York." },
 );
 
 export const serviceDraftSchema = z.object({
@@ -68,7 +68,7 @@ export const businessHoursSchema = z.object({
     Object.fromEntries(WEEKDAY_KEYS.map((d) => [d, dayIntervalsSchema])) as Record<
       (typeof WEEKDAY_KEYS)[number],
       typeof dayIntervalsSchema
-    >
+    >,
   ),
   exceptions: z
     .array(
@@ -76,14 +76,19 @@ export const businessHoursSchema = z.object({
         date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Use a date like 2026-12-25"),
         intervals: dayIntervalsSchema,
         label: z.string().optional(),
-      })
+      }),
     )
     .default([]),
 });
 
 export const bookingPolicySchema = z.object({
   // 0 is legitimate — a barbershop happily takes someone walking in now.
-  minNoticeMinutes: z.number().int().min(0).max(60 * 24 * 7).default(30),
+  minNoticeMinutes: z
+    .number()
+    .int()
+    .min(0)
+    .max(60 * 24 * 7)
+    .default(30),
   maxAdvanceDays: z.number().int().min(1).max(365).default(60),
 });
 

@@ -44,7 +44,9 @@ export function AgentPanel({ settings }: { settings: AppSettings }) {
   const changes = useMemo(() => {
     const out: string[] = []
     if (form.name !== settings.agent.name) out.push('agent name')
-    const phrases = PHRASES.filter((p) => form[p.field] !== settings.agent[p.field]).length
+    const phrases = PHRASES.filter(
+      (p) => form[p.field] !== settings.agent[p.field],
+    ).length
     if (phrases > 0) out.push(`${phrases} ${phrases === 1 ? 'phrase' : 'phrases'}`)
     return out
   }, [form, settings.agent])

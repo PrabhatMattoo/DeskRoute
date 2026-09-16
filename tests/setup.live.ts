@@ -22,7 +22,7 @@ if (leaked.length > 0) {
   throw new Error(
     `[live] refusing to run: ${leaked.join(", ")} still holds the placeholder ` +
       `value from vitest.config.ts, so these tests would exercise a fake. The ` +
-      `live project must load apps/voice/.env, not the dummy test environment.`
+      `live project must load apps/voice/.env, not the dummy test environment.`,
   );
 }
 
@@ -32,6 +32,6 @@ const missing = REQUIRED.filter((key) => !process.env[key]);
 if (missing.length > 0) {
   throw new Error(
     `[live] missing ${missing.join(", ")}. These tests need real credentials — ` +
-      `fill in apps/voice/.env before running \`pnpm -F backend test:live\`.`
+      `fill in apps/voice/.env before running \`pnpm -F backend test:live\`.`,
   );
 }

@@ -12,7 +12,7 @@ const RACE_WIDTH = 8;
  */
 beforeAll(async () => {
   await Promise.all(
-    Array.from({ length: RACE_WIDTH }, () => db.execute(sql`SELECT pg_sleep(0.15)`))
+    Array.from({ length: RACE_WIDTH }, () => db.execute(sql`SELECT pg_sleep(0.15)`)),
   );
 });
 import { makeAgent, makeCall } from "./factories.js";
@@ -33,7 +33,7 @@ describe("createEscalation", () => {
     // All start before any finishes — the real in-turn race, against the
     // pre-warmed pool established in beforeAll.
     const results = await Promise.all(
-      Array.from({ length: RACE_WIDTH }, () => createEscalation({ ...input }))
+      Array.from({ length: RACE_WIDTH }, () => createEscalation({ ...input })),
     );
 
     const ids = new Set(results.map((r) => r.id));
@@ -113,7 +113,7 @@ describe("escalation before the call row exists (PLAN.md 1.7.3)", () => {
         callId: ghostCallId,
         callerPhone: "+14155550123",
         question: "Are you open Sunday?",
-      })
+      }),
     ).rejects.toThrow();
   });
 

@@ -8,7 +8,7 @@ import { resolveCallerPhone } from "./caller.js";
 describe("resolveCallerPhone", () => {
   it("returns the caller's number when present", () => {
     expect(resolveCallerPhone({ "sip.phoneNumber": "+14155550123" }, false)).toBe(
-      "+14155550123"
+      "+14155550123",
     );
   });
 

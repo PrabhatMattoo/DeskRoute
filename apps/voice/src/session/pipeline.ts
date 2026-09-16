@@ -44,7 +44,9 @@ export function buildLLM(model: string): llm.LLM {
 
 /** Business and service names, de-duplicated, so this module needs no agent type. */
 export function buildKeyterms(businessName: string, serviceNames: string[]): string[] {
-  return [...new Set([businessName, ...serviceNames].map((t) => t?.trim()).filter(Boolean))];
+  return [
+    ...new Set([businessName, ...serviceNames].map((t) => t?.trim()).filter(Boolean)),
+  ];
 }
 
 /** Pure, so the pipeline is assertable without booting a worker. */
@@ -75,7 +77,9 @@ export function buildSessionConfig({
     inputOptions: {
       // Runs before VAD, STT and turn detection, so it is an accuracy fix. Tuned
       // for 8kHz phone audio, so a laptop microphone is the wrong input for it.
-      ...(isTestSession ? {} : { noiseCancellation: TelephonyBackgroundVoiceCancellation() }),
+      ...(isTestSession
+        ? {}
+        : { noiseCancellation: TelephonyBackgroundVoiceCancellation() }),
     },
     sttModel: STT_MODEL,
     ttsModel: TTS_MODEL,

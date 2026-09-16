@@ -9,7 +9,12 @@ const envSchema = z.object({
   DASHBOARD_ORIGINS: z
     .string()
     .default("http://localhost:5173")
-    .transform((v) => v.split(",").map((o) => o.trim()).filter(Boolean)),
+    .transform((v) =>
+      v
+        .split(",")
+        .map((o) => o.trim())
+        .filter(Boolean),
+    ),
 });
 
 export const env = parseEnv(envSchema, process.env);

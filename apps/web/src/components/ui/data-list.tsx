@@ -39,16 +39,18 @@ function track<T>(columns: Column<T>[]): string {
  * One list for calls, questions and knowledge, which are the same object at
  * different densities. A group row supplies what the columns leave out.
  */
-export function DataList<T>({ columns, groups, rowKey, href, rowLabel }: DataListProps<T>) {
+export function DataList<T>({
+  columns,
+  groups,
+  rowKey,
+  href,
+  rowLabel,
+}: DataListProps<T>) {
   const cols = track(columns)
 
   return (
     <div className="@container">
-      <div
-        role="table"
-        className="[--row:34px]"
-        style={{ ['--cols' as string]: cols }}
-      >
+      <div role="table" className="[--row:34px]" style={{ ['--cols' as string]: cols }}>
         <div
           role="row"
           className="sticky top-0 z-(--z-sticky) grid gap-3 bg-stage px-2.5 pb-1.5 text-muted-foreground"

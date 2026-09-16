@@ -24,7 +24,7 @@ beforeAll(async () => {
     throw new Error(
       "Cannot reach the test database. Start it with `docker compose up -d` " +
         "from the repo root, then re-run.\n" +
-        `Underlying error: ${err instanceof Error ? err.message : String(err)}`
+        `Underlying error: ${err instanceof Error ? err.message : String(err)}`,
     );
   }
 });

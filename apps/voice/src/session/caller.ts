@@ -4,7 +4,7 @@
  */
 export function resolveCallerPhone(
   attributes: Record<string, string | undefined>,
-  isTestSession: boolean
+  isTestSession: boolean,
 ): string | null {
   // Browser test sessions have no caller at all.
   if (isTestSession) return null;

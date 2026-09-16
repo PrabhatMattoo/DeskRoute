@@ -19,7 +19,7 @@ type CreateEscalationInput = {
  * a race two tool calls in one turn both lose, throwing out of the tool mid-call.
  */
 export async function createEscalation(
-  input: CreateEscalationInput
+  input: CreateEscalationInput,
 ): Promise<EscalationRow> {
   const rows = await db
     .insert(escalations)
@@ -46,14 +46,14 @@ export async function createEscalation(
     .where(
       and(
         eq(escalations.callId, input.callId!),
-        sql`lower(${escalations.question}) = lower(${input.question})`
-      )
+        sql`lower(${escalations.question}) = lower(${input.question})`,
+      ),
     )
     .limit(1);
 
   if (!existing[0]) {
     throw new Error(
-      `[escalations] insert conflicted but no existing row found for call ${input.callId}`
+      `[escalations] insert conflicted but no existing row found for call ${input.callId}`,
     );
   }
   return existing[0];
@@ -67,7 +67,9 @@ export async function listEscalations(agentId: string, status: "pending" | "reso
       callerPhone: escalations.callerPhone,
       // The name given at escalation wins; the stored client name is the
       // fallback for a caller we already knew.
-      callerName: sql<string | null>`coalesce(${escalations.callerName}, ${callers.name})`,
+      callerName: sql<
+        string | null
+      >`coalesce(${escalations.callerName}, ${callers.name})`,
       question: escalations.question,
       status: escalations.status,
       answer: escalations.answer,
@@ -82,7 +84,7 @@ export async function listEscalations(agentId: string, status: "pending" | "reso
 
 export async function getEscalationById(
   id: string,
-  agentId: string
+  agentId: string,
 ): Promise<EscalationRow | null> {
   // Full row: a narrower select cast to `EscalationRow` would claim fields it
   // leaves undefined at runtime.

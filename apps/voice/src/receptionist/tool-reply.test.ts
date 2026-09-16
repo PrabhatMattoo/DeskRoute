@@ -28,13 +28,16 @@ const TOOL_OUTPUT = JSON.stringify(SLOTS);
 function scriptedLLM() {
   return new FakeLLM([
     // Turn 1: the model decides to call the tool and says nothing.
-    { input: USER_ASKS, toolCalls: [
+    {
+      input: USER_ASKS,
+      toolCalls: [
         {
           name: "checkAvailability",
           // nullable, not optional — the schema requires all three keys.
           args: { service: "Haircut", preferredDate: null, partOfDay: "afternoon" },
         },
-      ] },
+      ],
+    },
     // Turn 2: keyed on the tool's output, the model writes the answer.
     { input: TOOL_OUTPUT, content: REPLY },
   ]);
@@ -57,18 +60,25 @@ describe("the reply after a tool call", () => {
         .map((e) => (e as { item?: { textContent?: string } }).item?.textContent ?? "")
         .join(" ");
 
-      console.log("EVENTS:", JSON.stringify(result.events.map((e) => ({
-        type: e.type,
-        text: (e as any).item?.textContent,
-        name: (e as any).item?.name,
-        output: (e as any).item?.output,
-      })), null, 1));
+      console.log(
+        "EVENTS:",
+        JSON.stringify(
+          result.events.map((e) => ({
+            type: e.type,
+            text: (e as any).item?.textContent,
+            name: (e as any).item?.name,
+            output: (e as any).item?.output,
+          })),
+          null,
+          1,
+        ),
+      );
       const calledTool = result.events.some((e) => e.type === "function_call");
 
       expect(calledTool, "the tool should have been called").toBe(true);
       expect(
         spoken,
-        `the tool's answer was never spoken. events: ${result.events.map((e) => e.type).join(", ")}`
+        `the tool's answer was never spoken. events: ${result.events.map((e) => e.type).join(", ")}`,
       ).toContain("12:30 PM");
     } finally {
       await session.close?.();

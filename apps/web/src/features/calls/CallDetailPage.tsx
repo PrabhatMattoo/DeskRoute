@@ -17,7 +17,9 @@ function Fact({ label, children }: { label: string; children: React.ReactNode })
   return (
     <div className="min-w-0">
       <dt className="text-muted-foreground">{label}</dt>
-      <dd className="mt-0.5 truncate font-medium text-foreground tabular-nums">{children}</dd>
+      <dd className="mt-0.5 truncate font-medium text-foreground tabular-nums">
+        {children}
+      </dd>
     </div>
   )
 }
@@ -93,7 +95,9 @@ export default function CallDetailPage() {
             </div>
           ))
         ) : (
-          <p className="py-3 text-muted-foreground">No transcript was captured for this call.</p>
+          <p className="py-3 text-muted-foreground">
+            No transcript was captured for this call.
+          </p>
         )}
       </div>
     </PageContainer>

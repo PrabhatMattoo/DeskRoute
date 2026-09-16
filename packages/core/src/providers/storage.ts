@@ -1,6 +1,11 @@
 import { S3Client, DeleteObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { EgressClient, EncodedFileOutput, EncodedFileType, S3Upload } from "livekit-server-sdk";
+import {
+  EgressClient,
+  EncodedFileOutput,
+  EncodedFileType,
+  S3Upload,
+} from "livekit-server-sdk";
 import { env } from "../env.js";
 
 const R2_KEYS = [
@@ -48,7 +53,7 @@ function getEgress(): EgressClient {
   egressClient ??= new EgressClient(
     env.LIVEKIT_URL,
     env.LIVEKIT_API_KEY,
-    env.LIVEKIT_API_SECRET
+    env.LIVEKIT_API_SECRET,
   );
   return egressClient;
 }
@@ -59,7 +64,7 @@ export function recordingKey(callId: string): string {
 
 export async function startCallRecording(
   roomName: string,
-  callId: string
+  callId: string,
 ): Promise<{ egressId: string; recordingKey: string }> {
   const cfg = r2Config();
   const key = recordingKey(callId);
@@ -99,13 +104,13 @@ export async function getPresignedRecordingUrl(callId: string): Promise<string> 
   return getSignedUrl(
     getR2(),
     new GetObjectCommand({ Bucket: cfg.bucket, Key: recordingKey(callId) }),
-    { expiresIn: 3600 }
+    { expiresIn: 3600 },
   );
 }
 
 export async function deleteRecording(callId: string): Promise<void> {
   const cfg = r2Config();
   await getR2().send(
-    new DeleteObjectCommand({ Bucket: cfg.bucket, Key: recordingKey(callId) })
+    new DeleteObjectCommand({ Bucket: cfg.bucket, Key: recordingKey(callId) }),
   );
 }

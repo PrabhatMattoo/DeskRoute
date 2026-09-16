@@ -72,7 +72,7 @@ describe("buildSessionConfig", () => {
       });
 
       expect(sessionOptions.keytermsOptions?.keyterms).toEqual(
-        expect.arrayContaining(["Test Business", "Haircut", "Colour"])
+        expect.arrayContaining(["Test Business", "Haircut", "Colour"]),
       );
     });
 

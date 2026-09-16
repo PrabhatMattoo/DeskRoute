@@ -51,7 +51,8 @@ export default function HomePage() {
   })
 
   const dismiss = useMutation({
-    mutationFn: () => apiClient.patch('/admin/settings', { setup: { checklistDismissed: true } }),
+    mutationFn: () =>
+      apiClient.patch('/admin/settings', { setup: { checklistDismissed: true } }),
     onSuccess: () => qc.invalidateQueries({ queryKey: keys.settings }),
   })
 

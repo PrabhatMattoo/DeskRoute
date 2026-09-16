@@ -17,17 +17,28 @@ interface SectionProps {
 }
 
 /** A heading over a card of rows. */
-export function Section({ title, lede, action, empty, children, className }: SectionProps) {
+export function Section({
+  title,
+  lede,
+  action,
+  empty,
+  children,
+  className,
+}: SectionProps) {
   return (
     <section className={cn('mb-8', className)}>
       <div className="flex items-start justify-between gap-4">
-        <h2 className="text-base font-semibold tracking-tight text-foreground">{title}</h2>
+        <h2 className="text-base font-semibold tracking-tight text-foreground">
+          {title}
+        </h2>
         {action && <div className="shrink-0">{action}</div>}
       </div>
       {lede && <p className={cn('mt-1 mb-3 text-muted-foreground', MEASURE)}>{lede}</p>}
       {/* A card round nothing is furniture, and the heading's button says what to do. */}
       {!empty && (
-        <ul className={cn('rounded-xl bg-card shadow-control', lede ? '' : 'mt-3')}>{children}</ul>
+        <ul className={cn('rounded-xl bg-card shadow-control', lede ? '' : 'mt-3')}>
+          {children}
+        </ul>
       )}
     </section>
   )
@@ -51,10 +62,7 @@ interface RowProps {
 export function Row({ title, description, children, stacked, htmlFor }: RowProps) {
   const label = (
     <div className="min-w-0">
-      <label
-        htmlFor={htmlFor}
-        className="block text-sm font-medium text-foreground"
-      >
+      <label htmlFor={htmlFor} className="block text-sm font-medium text-foreground">
         {title}
       </label>
       {description && (

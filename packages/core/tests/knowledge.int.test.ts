@@ -124,7 +124,7 @@ describe("resolveEscalationWithKnowledge", () => {
     const escalation = await makeEscalation(agent.id, { question: "Orphan?" });
 
     await expect(
-      resolveEscalationWithKnowledge(escalation, other.id, "Should not persist.")
+      resolveEscalationWithKnowledge(escalation, other.id, "Should not persist."),
     ).rejects.toThrow();
 
     expect(await listKnowledgeForPrompt(agent.id)).toEqual([]);

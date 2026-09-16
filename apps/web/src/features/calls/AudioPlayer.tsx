@@ -34,7 +34,9 @@ export default function AudioPlayer({ callId, hasRecording }: AudioPlayerProps) 
       a.pause()
       setPlaying(false)
     } else {
-      a.play().then(() => setPlaying(true)).catch(() => {})
+      a.play()
+        .then(() => setPlaying(true))
+        .catch(() => {})
     }
   }
 
@@ -50,11 +52,7 @@ export default function AudioPlayer({ callId, hasRecording }: AudioPlayerProps) 
     `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`
 
   if (!hasRecording) {
-    return (
-      <p className="text-muted-foreground">
-        No recording available for this call.
-      </p>
-    )
+    return <p className="text-muted-foreground">No recording available for this call.</p>
   }
 
   if (isLoading) return <Skeleton className="h-14 w-full rounded-lg" />
@@ -80,7 +78,11 @@ export default function AudioPlayer({ callId, hasRecording }: AudioPlayerProps) 
           className="shrink-0 rounded-full"
           aria-label={playing ? 'Pause' : 'Play'}
         >
-          {playing ? <Pause className="size-3.5" /> : <Play className="ml-0.5 size-3.5" />}
+          {playing ? (
+            <Pause className="size-3.5" />
+          ) : (
+            <Play className="ml-0.5 size-3.5" />
+          )}
         </Button>
 
         <span className="w-9 text-muted-foreground tabular-nums">

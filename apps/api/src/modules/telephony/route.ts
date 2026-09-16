@@ -36,7 +36,7 @@ export const telephony = new Hono<AppEnv>()
       await addPhoneNumber({ agentId, e164: purchased.e164_format, provider: "livekit" });
     } catch (dbErr) {
       await releasePhoneNumber(purchased.e164_format).catch((e: unknown) =>
-        console.error("[telephony] rollback release failed:", e)
+        console.error("[telephony] rollback release failed:", e),
       );
       throw dbErr;
     }
@@ -50,7 +50,7 @@ export const telephony = new Hono<AppEnv>()
 
     for (const number of await listPhoneNumbers(agentId)) {
       await releasePhoneNumber(number.e164).catch((e: unknown) =>
-        console.error("[telephony] release failed:", e)
+        console.error("[telephony] release failed:", e),
       );
       await removePhoneNumber(agentId, number.e164);
     }

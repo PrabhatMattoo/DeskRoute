@@ -46,8 +46,10 @@ function serviceChanged(row: Row_, original: Service): boolean {
 
 function summarise(s: Row_): string {
   const parts = [formatMinutes(s.durationMinutes)]
-  if (s.bufferBeforeMinutes > 0) parts.push(`${formatMinutes(s.bufferBeforeMinutes)} held before`)
-  if (s.bufferAfterMinutes > 0) parts.push(`${formatMinutes(s.bufferAfterMinutes)} held after`)
+  if (s.bufferBeforeMinutes > 0)
+    parts.push(`${formatMinutes(s.bufferBeforeMinutes)} held before`)
+  if (s.bufferAfterMinutes > 0)
+    parts.push(`${formatMinutes(s.bufferAfterMinutes)} held after`)
   return parts.join(' · ')
 }
 
@@ -238,7 +240,11 @@ export function BusinessPanel({ settings }: { settings: AppSettings }) {
         title="Services"
         lede="What your agent quotes, and how long each blocks your day."
         action={
-          <Button variant="outline" size="sm" onClick={() => editDraft({ index: null, value: emptyService() })}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => editDraft({ index: null, value: emptyService() })}
+          >
             <Plus />
             Add service
           </Button>
@@ -246,10 +252,18 @@ export function BusinessPanel({ settings }: { settings: AppSettings }) {
         empty={rows.length === 0}
       >
         {rows.map((row, i) => (
-          <Row key={row.id ?? `new-${i}`} title={row.name || 'Untitled service'} description={summarise(row)}>
+          <Row
+            key={row.id ?? `new-${i}`}
+            title={row.name || 'Untitled service'}
+            description={summarise(row)}
+          >
             <div className="flex items-center gap-4">
               <span className="font-medium tabular-nums">{row.price}</span>
-              <Button variant="outline" size="sm" onClick={() => editDraft({ index: i, value: row })}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => editDraft({ index: i, value: row })}
+              >
                 Edit
               </Button>
             </div>
@@ -270,7 +284,11 @@ export function BusinessPanel({ settings }: { settings: AppSettings }) {
           onRemove={draft.index === null ? undefined : removeDraft}
           removeLabel="Remove service"
         >
-          <SubRow title="Service name" description="What a caller asks for by name." htmlFor="svc-name">
+          <SubRow
+            title="Service name"
+            description="What a caller asks for by name."
+            htmlFor="svc-name"
+          >
             <Input
               id="svc-name"
               className="w-field-md"
@@ -278,7 +296,11 @@ export function BusinessPanel({ settings }: { settings: AppSettings }) {
               onChange={(e) => patch({ name: e.target.value })}
             />
           </SubRow>
-          <SubRow title="Price" description="Said out loud when a caller asks what it costs." htmlFor="svc-price">
+          <SubRow
+            title="Price"
+            description="Said out loud when a caller asks what it costs."
+            htmlFor="svc-price"
+          >
             <Input
               id="svc-price"
               className="w-field-xs tabular-nums"

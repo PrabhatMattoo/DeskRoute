@@ -31,11 +31,16 @@ function minutesBetween(a: string | null, b: string | null): number | null {
 
 export default function AppointmentsPage() {
   const zone = useAgentZone()
-  const { data, isLoading } = useQuery({ queryKey: keys.appointments, queryFn: fetchers.appointments })
+  const { data, isLoading } = useQuery({
+    queryKey: keys.appointments,
+    queryFn: fetchers.appointments,
+  })
   const appointments = useMemo(() => data ?? [], [data])
 
   const [monday, setMonday] = useState(() => weekStart(new Date()))
-  const [selected, setSelected] = useState(() => dayKey(new Date().toISOString(), undefined))
+  const [selected, setSelected] = useState(() =>
+    dayKey(new Date().toISOString(), undefined),
+  )
 
   const week = useMemo(
     () => Array.from({ length: 7 }, (_, i) => new Date(monday.getTime() + i * DAY_MS)),
@@ -59,7 +64,8 @@ export default function AppointmentsPage() {
 
   const undated = useMemo(() => appointments.filter((a) => !a.startTime), [appointments])
   const shown = byDay.get(selected) ?? []
-  const selectedDate = week.find((d) => dayKey(d.toISOString(), zone) === selected) ?? week[0]!
+  const selectedDate =
+    week.find((d) => dayKey(d.toISOString(), zone) === selected) ?? week[0]!
 
   const totalMinutes = shown.reduce(
     (sum, a) => sum + (minutesBetween(a.startTime, a.endTime) ?? 0),
@@ -183,8 +189,9 @@ export default function AppointmentsPage() {
 
       {undated.length > 0 && (
         <p className="mt-5 px-2.5 text-muted-foreground">
-          {undated.length} {undated.length === 1 ? 'appointment has' : 'appointments have'} no
-          time yet, so they do not appear on a day.
+          {undated.length}{' '}
+          {undated.length === 1 ? 'appointment has' : 'appointments have'} no time yet, so
+          they do not appear on a day.
         </p>
       )}
     </PageContainer>

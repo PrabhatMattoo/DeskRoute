@@ -57,8 +57,8 @@ export default function OnboardingPage() {
       navigate('/')
     } catch (err: unknown) {
       const message =
-        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-        'Setup failed. Try again.'
+        (err as { response?: { data?: { message?: string } } })?.response?.data
+          ?.message || 'Setup failed. Try again.'
       toast.error(message)
     } finally {
       setSubmitting(false)

@@ -1,6 +1,9 @@
 import { Hono } from "hono";
 import type { AppEnv } from "../../types.js";
-import { listKnowledge, deleteKnowledge } from "@receptionist/core/repositories/knowledge.js";
+import {
+  listKnowledge,
+  deleteKnowledge,
+} from "@receptionist/core/repositories/knowledge.js";
 
 export const knowledge = new Hono<AppEnv>()
   .get("/", async (c) => c.json(await listKnowledge(c.get("agentId"))))

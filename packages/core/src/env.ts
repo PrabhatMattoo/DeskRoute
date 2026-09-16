@@ -39,7 +39,7 @@ const coreEnvSchema = z
  *  rather than exiting, so importing this never kills the test runner. */
 export function parseEnv<T extends z.ZodTypeAny>(schema: T, source: unknown): z.infer<T> {
   const present = Object.fromEntries(
-    Object.entries(source as Record<string, unknown>).filter(([, v]) => v !== "")
+    Object.entries(source as Record<string, unknown>).filter(([, v]) => v !== ""),
   );
   const parsed = schema.safeParse(present);
   if (parsed.success) return parsed.data;

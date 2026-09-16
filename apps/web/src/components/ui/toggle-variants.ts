@@ -1,4 +1,4 @@
-import { cva } from "class-variance-authority"
+import { cva } from 'class-variance-authority'
 
 /**
  * Every state fill lives in its variant rather than the root string, which is
@@ -11,30 +11,30 @@ export const toggleVariants = cva(
       variant: {
         /* No fill at rest: a ghost is a control once you point at it. */
         default:
-          "bg-transparent hover:bg-hover hover:text-foreground aria-pressed:bg-active data-[state=on]:bg-active",
+          'bg-transparent hover:bg-hover hover:text-foreground aria-pressed:bg-active data-[state=on]:bg-active',
         outline:
-          "border border-border bg-control shadow-low hover:bg-control-hover aria-pressed:bg-control-active data-[state=on]:bg-control-active",
+          'border border-border bg-control shadow-low hover:bg-control-hover aria-pressed:bg-control-active data-[state=on]:bg-control-active',
         /* A control: lit at rest, sinking when chosen, so the unselected one is
            the raised one. */
         /* The ring stays in both states; only the lift goes. A chosen pill is
            sunk, not edgeless. Same weight throughout, so nothing resizes. */
-        pill: "rounded-full border-[0.5px] border-transparent bg-control bg-clip-padding px-2.5 font-medium text-muted-foreground shadow-control hover:bg-control-hover hover:text-foreground aria-pressed:border-transparent aria-pressed:bg-active aria-pressed:text-foreground aria-pressed:shadow-ring data-[state=on]:bg-active data-[state=on]:text-foreground data-[state=on]:shadow-ring",
+        pill: 'rounded-full border-[0.5px] border-transparent bg-control bg-clip-padding px-2.5 font-medium text-muted-foreground shadow-control hover:bg-control-hover hover:text-foreground aria-pressed:border-transparent aria-pressed:bg-active aria-pressed:text-foreground aria-pressed:shadow-ring data-[state=on]:bg-active data-[state=on]:text-foreground data-[state=on]:shadow-ring',
         /* No rest fill, so its states are the row rungs. Stacks, because it
            carries a title and a line of metadata rather than an icon. */
-        row: "w-full flex-col items-start justify-start whitespace-normal bg-transparent text-left font-normal hover:bg-hover aria-pressed:bg-active data-[state=on]:bg-active",
+        row: 'w-full flex-col items-start justify-start whitespace-normal bg-transparent text-left font-normal hover:bg-hover aria-pressed:bg-active data-[state=on]:bg-active',
       },
       size: {
         default:
-          "h-7 min-w-7 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",
+          'h-7 min-w-7 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2',
         sm: "h-7 min-w-7 px-2.5 has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5",
-        lg: "h-9 min-w-9 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",
+        lg: 'h-9 min-w-9 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2',
         /* A row sizes to its own content rather than to a control's rhythm. */
-        row: "h-auto min-w-0 px-3 py-2.5",
+        row: 'h-auto min-w-0 px-3 py-2.5',
       },
     },
     defaultVariants: {
-      variant: "default",
-      size: "default",
+      variant: 'default',
+      size: 'default',
     },
-  }
+  },
 )

@@ -6,7 +6,7 @@ import type { TranscriptEntry, CallOutcome } from "../db/schema.js";
 export type CallRow = typeof calls.$inferSelect;
 
 type CreateCallInput = {
-  id?: string;          // caller-generated UUID — omit to let Postgres generate one
+  id?: string; // caller-generated UUID — omit to let Postgres generate one
   agentId: string;
   callerId?: string | null;
   callerPhone: string | null;
@@ -38,10 +38,7 @@ type FinishCallData = {
   recordingKey: string | null;
 };
 
-export async function finishCall(
-  callId: string,
-  data: FinishCallData
-): Promise<void> {
+export async function finishCall(callId: string, data: FinishCallData): Promise<void> {
   await db
     .update(calls)
     .set({
@@ -54,11 +51,7 @@ export async function finishCall(
     .where(eq(calls.id, callId));
 }
 
-export async function listCalls(
-  agentId: string,
-  limit = 50,
-  offset = 0
-) {
+export async function listCalls(agentId: string, limit = 50, offset = 0) {
   return db
     .select({
       id: calls.id,

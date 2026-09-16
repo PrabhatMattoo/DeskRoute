@@ -8,7 +8,7 @@ export type KnowledgeItemRow = typeof knowledgeItems.$inferSelect;
 /** Seeding helper for the integration tests. Production goes through resolveEscalationWithKnowledge. */
 export async function createKnowledgeFromEscalation(
   escalation: EscalationRow,
-  answer: string
+  answer: string,
 ): Promise<void> {
   await db.insert(knowledgeItems).values({
     agentId: escalation.agentId,
@@ -25,7 +25,7 @@ export async function createKnowledgeFromEscalation(
 export async function resolveEscalationWithKnowledge(
   escalation: EscalationRow,
   agentId: string,
-  answer: string
+  answer: string,
 ): Promise<void> {
   await db.transaction(async (tx) => {
     await tx.insert(knowledgeItems).values({
@@ -53,7 +53,7 @@ export const KNOWLEDGE_PROMPT_LIMIT = 300;
 
 /** Oldest first, so the prompt prefix stays stable and cacheable as items are added. */
 export async function listKnowledgeForPrompt(
-  agentId: string
+  agentId: string,
 ): Promise<Array<{ question: string; answer: string }>> {
   return db
     .select({ question: knowledgeItems.question, answer: knowledgeItems.answer })
@@ -93,7 +93,7 @@ export async function deleteKnowledge(id: string, agentId: string): Promise<void
       .update(escalations)
       .set({ status: "pending", answer: null, resolvedAt: null })
       .where(
-        and(eq(escalations.id, sourceEscalationId), eq(escalations.agentId, agentId))
+        and(eq(escalations.id, sourceEscalationId), eq(escalations.agentId, agentId)),
       );
   });
 }

@@ -28,33 +28,30 @@ export function NumberSearch({
   // rather than an empty list, so a half-typed one must not be sent.
   const searchable = areaCode.length === 0 || areaCode.length === 3
 
-  const search = useCallback(
-    async (code: string) => {
-      setLoading(true)
-      setError(null)
-      try {
-        const res = await apiClient.get<AvailableNumber[]>(
-          `/onboarding/phone/search${code ? `?areaCode=${code}` : ''}`,
+  const search = useCallback(async (code: string) => {
+    setLoading(true)
+    setError(null)
+    try {
+      const res = await apiClient.get<AvailableNumber[]>(
+        `/onboarding/phone/search${code ? `?areaCode=${code}` : ''}`,
+      )
+      setNumbers(res.data)
+      if (res.data.length === 0) {
+        setError(
+          code
+            ? `No numbers free in ${code}. Try another area code, or leave it blank.`
+            : 'No numbers are available right now.',
         )
-        setNumbers(res.data)
-        if (res.data.length === 0) {
-          setError(
-            code
-              ? `No numbers free in ${code}. Try another area code, or leave it blank.`
-              : 'No numbers are available right now.',
-          )
-        }
-      } catch (err: unknown) {
-        const message = (err as { response?: { data?: { message?: string } } })?.response
-          ?.data?.message
-        setError(message ?? 'Could not reach the number list. Try again.')
-        setNumbers([])
-      } finally {
-        setLoading(false)
       }
-    },
-    [],
-  )
+    } catch (err: unknown) {
+      const message = (err as { response?: { data?: { message?: string } } })?.response
+        ?.data?.message
+      setError(message ?? 'Could not reach the number list. Try again.')
+      setNumbers([])
+    } finally {
+      setLoading(false)
+    }
+  }, [])
 
   useEffect(() => {
     void search('')
@@ -67,8 +64,8 @@ export function NumberSearch({
           Area code
         </label>
         <p className="text-muted-foreground">
-          Three digits, so the number reads as local. Leave it blank for numbers anywhere in
-          the US.
+          Three digits, so the number reads as local. Leave it blank for numbers anywhere
+          in the US.
         </p>
         <div className="mt-1 flex items-center gap-2">
           <span className="relative inline-flex">

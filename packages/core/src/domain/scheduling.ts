@@ -49,7 +49,7 @@ function zonedParts(instant: Date, timeZone: string) {
       second: "2-digit",
     })
       .formatToParts(instant)
-      .map((p) => [p.type, p.value])
+      .map((p) => [p.type, p.value]),
   ) as Record<string, string>;
 
   return {
@@ -77,7 +77,7 @@ function offsetMsAt(instant: Date, timeZone: string): number {
 export function zonedWallClockToUtc(
   dateIso: string,
   hhmm: string,
-  timeZone: string
+  timeZone: string,
 ): Date {
   const [year, month, day] = dateIso.split("-").map(Number);
   const [hour, minute] = hhmm.split(":").map(Number);
@@ -102,7 +102,7 @@ export function addDays(dateIso: string, days: number): string {
   const shifted = new Date(Date.UTC(year!, month! - 1, day!) + days * DAY_MS);
   const pad = (n: number) => String(n).padStart(2, "0");
   return `${shifted.getUTCFullYear()}-${pad(shifted.getUTCMonth() + 1)}-${pad(
-    shifted.getUTCDate()
+    shifted.getUTCDate(),
   )}`;
 }
 
@@ -113,10 +113,7 @@ export function weekdayOf(dateIso: string): Weekday {
 
 /** An exception replaces the weekly pattern outright, which is what makes a
  *  closed day expressible. */
-export function intervalsForDate(
-  hours: BusinessHours,
-  dateIso: string
-): TimeInterval[] {
+export function intervalsForDate(hours: BusinessHours, dateIso: string): TimeInterval[] {
   const exception = hours.exceptions.find((e) => e.date === dateIso);
   if (exception) return exception.intervals;
   return hours.weekly[weekdayOf(dateIso)] ?? [];
@@ -205,11 +202,11 @@ export function generateCandidateSlots({
         // rather than spilling it outside the hours the business keeps.
         const blockStart = Math.max(
           opens.getTime(),
-          startMs - service.bufferBeforeMinutes * MINUTE_MS
+          startMs - service.bufferBeforeMinutes * MINUTE_MS,
         );
         const blockEnd = Math.min(
           closes.getTime(),
-          endMs + service.bufferAfterMinutes * MINUTE_MS
+          endMs + service.bufferAfterMinutes * MINUTE_MS,
         );
 
         slots.push({
@@ -232,26 +229,30 @@ export function filterByBusy(slots: Slot[], busy: BusyRange[]): Slot[] {
 
   return slots.filter((slot) =>
     busy.every(
-      (b) => slot.blockStart.getTime() >= b.end.getTime() || slot.blockEnd.getTime() <= b.start.getTime()
-    )
+      (b) =>
+        slot.blockStart.getTime() >= b.end.getTime() ||
+        slot.blockEnd.getTime() <= b.start.getTime(),
+    ),
   );
 }
 
 /** "Wed Aug 19, 2:00 PM" — how the agent says it out loud. */
 export function describeSlot(slot: Slot, timeZone: string): string {
-  return new Intl.DateTimeFormat("en-US", {
-    timeZone,
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  })
-    .format(slot.start)
-    // Drops the comma after the weekday only. The one before the time stays —
-    // it is where a person pauses when reading the slot aloud.
-    .replace(",", "");
+  return (
+    new Intl.DateTimeFormat("en-US", {
+      timeZone,
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    })
+      .format(slot.start)
+      // Drops the comma after the weekday only. The one before the time stays —
+      // it is where a person pauses when reading the slot aloud.
+      .replace(",", "")
+  );
 }
 
 /**
@@ -293,7 +294,7 @@ export function findService(services: Service[], spoken: string): Service | null
   if (exact) return exact;
 
   const partial = services.filter(
-    (s) => s.name.toLowerCase().includes(needle) || needle.includes(s.name.toLowerCase())
+    (s) => s.name.toLowerCase().includes(needle) || needle.includes(s.name.toLowerCase()),
   );
   return partial.length === 1 ? partial[0]! : null;
 }

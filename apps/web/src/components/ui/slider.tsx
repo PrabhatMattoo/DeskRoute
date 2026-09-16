@@ -1,11 +1,11 @@
-import { Slider as SliderPrimitive } from "@base-ui/react/slider"
+import { Slider as SliderPrimitive } from '@base-ui/react/slider'
 
-import { cn } from "@/lib/utils"
+import { cn } from '@/lib/utils'
 
 /** One thumb per value. A scalar `value` is one thumb, an array is one each. */
 function thumbCount(
-  value: SliderPrimitive.Root.Props["value"],
-  defaultValue: SliderPrimitive.Root.Props["defaultValue"]
+  value: SliderPrimitive.Root.Props['value'],
+  defaultValue: SliderPrimitive.Root.Props['defaultValue'],
 ): number {
   if (Array.isArray(value)) return value.length
   if (Array.isArray(defaultValue)) return defaultValue.length
@@ -23,8 +23,8 @@ function Slider({
   return (
     <SliderPrimitive.Root
       className={cn(
-        "data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full",
-        className
+        'data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full',
+        className,
       )}
       data-slot="slider"
       defaultValue={defaultValue}

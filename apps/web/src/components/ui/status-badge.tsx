@@ -22,11 +22,7 @@ export function StatusBadge<T extends string>({
 
   return (
     <span
-      className={cn(
-        'inline-flex items-center text-sm',
-        toneToClasses(tone),
-        className,
-      )}
+      className={cn('inline-flex items-center text-sm', toneToClasses(tone), className)}
     >
       {label}
     </span>

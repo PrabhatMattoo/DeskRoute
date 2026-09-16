@@ -28,7 +28,7 @@ export type AgentDeps = {
   caller: CallerRow | null; // null briefly during greeting; populated before any tool can fire
   /** null when the caller withheld their number — see agent/caller.ts. */
   callerPhone: string | null;
-  callId: string;           // generated locally via crypto.randomUUID() — never empty
+  callId: string; // generated locally via crypto.randomUUID() — never empty
   /**
    * True once the `calls` row exists. Anything writing a foreign key to it awaits
    * this, rather than the insert moving onto the path to first audio. Never rejects.

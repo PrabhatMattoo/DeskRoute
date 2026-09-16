@@ -21,7 +21,7 @@ export function periodStart(period: string): Date {
 export function isAfterHours(
   started: Date,
   hours: BusinessHours,
-  timeZone: string
+  timeZone: string,
 ): boolean {
   const dateIso = localDateIso(started, timeZone);
   const intervals = intervalsForDate(hours, dateIso);

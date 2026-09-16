@@ -32,7 +32,7 @@ export async function listServices(agentId: string): Promise<Service[]> {
 
 export async function createService(
   agentId: string,
-  draft: ServiceDraft
+  draft: ServiceDraft,
 ): Promise<Service> {
   // Append rather than insert at zero: a new service showing up at the top of
   // someone's list is a small surprise nobody asked for.
@@ -63,7 +63,7 @@ export async function createService(
 export async function updateService(
   agentId: string,
   id: string,
-  patch: Partial<ServiceDraft>
+  patch: Partial<ServiceDraft>,
 ): Promise<Service | null> {
   const rows = await db
     .update(services)
@@ -89,7 +89,7 @@ export async function deleteService(agentId: string, id: string): Promise<boolea
 /** One transaction, so a failed insert cannot leave a half-built list. */
 export async function replaceServices(
   agentId: string,
-  drafts: ServiceDraft[]
+  drafts: ServiceDraft[],
 ): Promise<void> {
   await db.transaction(async (tx) => {
     await tx.delete(services).where(eq(services.agentId, agentId));
@@ -106,7 +106,7 @@ export async function replaceServices(
         bufferAfterMinutes: draft.bufferAfterMinutes,
         requiredResources: draft.requiredResources,
         position,
-      }))
+      })),
     );
   });
 }

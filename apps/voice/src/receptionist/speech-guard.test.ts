@@ -35,10 +35,14 @@ async function run(input: unknown[]) {
   }
 
   const spoken = out
-    .map((c) => (typeof c === "string" ? c : (c as llm.ChatChunk)?.delta?.content ?? ""))
+    .map((c) =>
+      typeof c === "string" ? c : ((c as llm.ChatChunk)?.delta?.content ?? ""),
+    )
     .join("");
   const tools = out.flatMap((c) =>
-    typeof c === "string" ? [] : ((c as llm.ChatChunk)?.delta?.toolCalls ?? []).map((t) => t.name)
+    typeof c === "string"
+      ? []
+      : ((c as llm.ChatChunk)?.delta?.toolCalls ?? []).map((t) => t.name),
   );
   return { out, spoken, tools };
 }
@@ -71,10 +75,7 @@ describe("a turn that calls a tool never speaks", () => {
   });
 
   it("drops raw string chunks on a tool turn", async () => {
-    const { spoken, tools } = await run([
-      "thinking out loud",
-      toolCall("endCall", "{}"),
-    ]);
+    const { spoken, tools } = await run(["thinking out loud", toolCall("endCall", "{}")]);
 
     expect(spoken).toBe("");
     expect(tools).toEqual(["endCall"]);
@@ -82,7 +83,12 @@ describe("a turn that calls a tool never speaks", () => {
 
   it("strips text from a chunk that carries both, keeping the call", async () => {
     const { spoken, tools } = await run([
-      chunk({ content: "Let me check.", toolCalls: [{ callId: "c1", name: "checkAvailability", args: "{}" } as llm.FunctionCall] }),
+      chunk({
+        content: "Let me check.",
+        toolCalls: [
+          { callId: "c1", name: "checkAvailability", args: "{}" } as llm.FunctionCall,
+        ],
+      }),
     ]);
 
     expect(spoken).toBe("");
@@ -117,7 +123,12 @@ describe("an ordinary turn is untouched", () => {
 
   it("preserves usage totals on a silenced turn", async () => {
     // Billing and metrics must survive; only the words are dropped.
-    const usage = { completionTokens: 12, promptTokens: 400, promptCachedTokens: 0, totalTokens: 412 };
+    const usage = {
+      completionTokens: 12,
+      promptTokens: 400,
+      promptCachedTokens: 0,
+      totalTokens: 412,
+    };
     const { out, spoken } = await run([
       chunk({ content: "deliberating" }),
       toolCall("checkAvailability", "{}"),

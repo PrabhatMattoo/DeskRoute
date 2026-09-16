@@ -62,10 +62,13 @@ describe("buildSystemPrompt", () => {
       const prompt = buildSystemPrompt(
         makeAgentDeps({
           knowledge: [
-            { question: "Do you have parking?", answer: "Yes, free lot behind the building." },
+            {
+              question: "Do you have parking?",
+              answer: "Yes, free lot behind the building.",
+            },
             { question: "Do you take walk-ins?", answer: "Walk-ins welcome before 3pm." },
           ],
-        })
+        }),
       );
 
       expect(prompt).toContain("Do you have parking?");
@@ -86,18 +89,18 @@ describe("buildSystemPrompt", () => {
       const prompt = buildSystemPrompt(
         makeAgentDeps({
           knowledge: [{ question: "Parking?", answer: "Yes." }],
-        })
+        }),
       );
 
       const lastStable = Math.max(
         prompt.indexOf("## Services"),
         prompt.indexOf("## Knowledge"),
-        prompt.indexOf("## Behavior")
+        prompt.indexOf("## Behavior"),
       );
       const firstPerCall = Math.min(
         ...[prompt.indexOf("## Caller"), prompt.indexOf("## Current time")].filter(
-          (i) => i >= 0
-        )
+          (i) => i >= 0,
+        ),
       );
 
       expect(lastStable).toBeGreaterThanOrEqual(0);
@@ -106,8 +109,12 @@ describe("buildSystemPrompt", () => {
 
     it("produces a byte-identical stable prefix across two different callers", () => {
       const knowledge = [{ question: "Parking?", answer: "Yes." }];
-      const a = buildSystemPrompt(makeAgentDeps({ knowledge, callerPhone: "+14155550001" }));
-      const b = buildSystemPrompt(makeAgentDeps({ knowledge, callerPhone: "+14155550002" }));
+      const a = buildSystemPrompt(
+        makeAgentDeps({ knowledge, callerPhone: "+14155550001" }),
+      );
+      const b = buildSystemPrompt(
+        makeAgentDeps({ knowledge, callerPhone: "+14155550002" }),
+      );
 
       const prefixOf = (p: string) => p.slice(0, p.indexOf("## Caller"));
       expect(prefixOf(a)).toBe(prefixOf(b));
@@ -153,7 +160,7 @@ describe("buildSystemPrompt", () => {
       });
 
       expect(buildSystemPrompt(makeAgentDeps({ agent }))).toContain(
-        "Monday: 9:00 AM to 1:00 PM, and 2:00 PM to 6:00 PM"
+        "Monday: 9:00 AM to 1:00 PM, and 2:00 PM to 6:00 PM",
       );
     });
 
@@ -224,11 +231,14 @@ describe("the prompt states facts; the tools state procedure", () => {
       makeAgentDeps({
         calendarExternalId: "cal-1",
         knowledge: [{ question: "Do you have parking?", answer: "Yes, out front." }],
-      })
+      }),
     );
 
     const named = TOOL_NAMES.filter((tool) => prompt.includes(tool));
-    expect(named, `the prompt names ${named.join(", ")} — that belongs on the tool`).toEqual([]);
+    expect(
+      named,
+      `the prompt names ${named.join(", ")} — that belongs on the tool`,
+    ).toEqual([]);
   });
 
   it("still states whether booking is possible at all", () => {

@@ -29,7 +29,7 @@ type Inspectable = llm.ChatChunk | string | symbol;
 
 /** Buffers a turn to end of stream, because the tool call can arrive after the text. */
 export function suppressSpeechOnToolTurns(
-  source: ReadableStream<unknown>
+  source: ReadableStream<unknown>,
 ): ReadableStream<unknown> {
   return new ReadableStream<unknown>({
     async start(controller) {

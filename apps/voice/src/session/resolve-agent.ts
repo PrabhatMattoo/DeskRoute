@@ -30,7 +30,11 @@ export async function resolveAgent(by: {
 
   const cached = cache.get(key);
   if (cached && Date.now() < cached.expiresAt) {
-    return { agent: cached.agent, services: cached.services, knowledge: cached.knowledge };
+    return {
+      agent: cached.agent,
+      services: cached.services,
+      knowledge: cached.knowledge,
+    };
   }
 
   const agent = by.agentId
@@ -45,6 +49,11 @@ export async function resolveAgent(by: {
     listKnowledgeForPrompt(agent.id),
   ]);
 
-  cache.set(key, { agent, services, knowledge, expiresAt: Date.now() + AGENT_CACHE_TTL_MS });
+  cache.set(key, {
+    agent,
+    services,
+    knowledge,
+    expiresAt: Date.now() + AGENT_CACHE_TTL_MS,
+  });
   return { agent, services, knowledge };
 }

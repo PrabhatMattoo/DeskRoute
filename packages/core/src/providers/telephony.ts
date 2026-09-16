@@ -1,7 +1,10 @@
 import { AccessToken } from "livekit-server-sdk";
 import { env } from "../env.js";
 
-const LIVEKIT_HTTP = env.LIVEKIT_URL.replace("wss://", "https://").replace("ws://", "http://");
+const LIVEKIT_HTTP = env.LIVEKIT_URL.replace("wss://", "https://").replace(
+  "ws://",
+  "http://",
+);
 
 async function makeSipAdminToken(): Promise<string> {
   const at = new AccessToken(env.LIVEKIT_API_KEY, env.LIVEKIT_API_SECRET);
@@ -20,7 +23,9 @@ async function twirp(method: string, body: object): Promise<Record<string, unkno
   });
   if (!res.ok) {
     const text = await res.text().catch(() => "");
-    throw new Error(`LiveKit PhoneNumberService/${method} failed (${res.status}): ${text}`);
+    throw new Error(
+      `LiveKit PhoneNumberService/${method} failed (${res.status}): ${text}`,
+    );
   }
   return res.json();
 }
@@ -61,10 +66,12 @@ export class InvalidAreaCode extends Error {
 }
 
 export async function purchasePhoneNumber(
-  phoneNumber: string
+  phoneNumber: string,
 ): Promise<{ e164_format: string; status: string }> {
   const data = await twirp("PurchasePhoneNumber", { phone_numbers: [phoneNumber] });
-  const purchased = (data.phone_numbers as Array<{ e164_format: string; status: string }>)[0];
+  const purchased = (
+    data.phone_numbers as Array<{ e164_format: string; status: string }>
+  )[0];
   return purchased;
 }
 

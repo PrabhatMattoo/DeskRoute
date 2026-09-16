@@ -18,7 +18,7 @@ describe("getUpcomingByPhone", () => {
 
     const whatTheNextAnonymousCallerWouldHear = await getUpcomingByPhone(
       agent.id,
-      "unknown"
+      "unknown",
     );
 
     expect(whatTheNextAnonymousCallerWouldHear).toHaveLength(1);

@@ -1,6 +1,9 @@
 import { Hono } from "hono";
 import type { AppEnv } from "../../types.js";
-import { listEscalations, getEscalationById } from "@receptionist/core/repositories/escalations.js";
+import {
+  listEscalations,
+  getEscalationById,
+} from "@receptionist/core/repositories/escalations.js";
 import { resolveEscalationWithKnowledge } from "@receptionist/core/repositories/knowledge.js";
 import { escalationResolveSchema } from "../../schemas.js";
 

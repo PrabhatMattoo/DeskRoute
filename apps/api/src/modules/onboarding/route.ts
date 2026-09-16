@@ -64,7 +64,7 @@ export const onboarding = new Hono()
       if (services.length > 0) await replaceServices(agent.id, services);
     } catch (dbErr) {
       await releasePhoneNumber(purchased.e164_format).catch((e: unknown) =>
-        console.error("[onboarding] rollback release failed:", e)
+        console.error("[onboarding] rollback release failed:", e),
       );
       throw dbErr;
     }

@@ -20,9 +20,14 @@ export class ReceptionistAgent extends voice.Agent {
   override async llmNode(
     chatCtx: llm.ChatContext,
     toolCtx: llm.ToolContext,
-    modelSettings: voice.ModelSettings
+    modelSettings: voice.ModelSettings,
   ) {
-    const source = await voice.Agent.default.llmNode(this, chatCtx, toolCtx, modelSettings);
+    const source = await voice.Agent.default.llmNode(
+      this,
+      chatCtx,
+      toolCtx,
+      modelSettings,
+    );
     if (!source) return null;
     // The cast is only for `ReadableStream`'s invariant generic; the transform
     // preserves the element type.

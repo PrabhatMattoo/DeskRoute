@@ -16,9 +16,8 @@ vi.mock("../env.js", () => ({
   },
 }));
 
-const { storageConfigured, recordingEnabled, startCallRecording } = await import(
-  "./storage.js"
-);
+const { storageConfigured, recordingEnabled, startCallRecording } =
+  await import("./storage.js");
 
 describe("recordingEnabled", () => {
   it("is false with no storage, whatever the agent asked for", () => {

@@ -24,28 +24,40 @@ const booking = (agentId: string, blockStart: Date, blockEnd: Date) => ({
 describe("appointments_no_overlap", () => {
   it("rejects a second confirmed booking over the same block", async () => {
     const agent = await makeAgent();
-    await createAppointment(booking(agent.id, AT("2026-10-01T14:00:00Z"), AT("2026-10-01T15:00:00Z")));
+    await createAppointment(
+      booking(agent.id, AT("2026-10-01T14:00:00Z"), AT("2026-10-01T15:00:00Z")),
+    );
 
     await expect(
-      createAppointment(booking(agent.id, AT("2026-10-01T14:30:00Z"), AT("2026-10-01T15:30:00Z")))
+      createAppointment(
+        booking(agent.id, AT("2026-10-01T14:30:00Z"), AT("2026-10-01T15:30:00Z")),
+      ),
     ).rejects.toBeInstanceOf(SlotTaken);
   });
 
   it("allows back-to-back bookings that only touch", async () => {
     const agent = await makeAgent();
-    await createAppointment(booking(agent.id, AT("2026-10-01T14:00:00Z"), AT("2026-10-01T15:00:00Z")));
+    await createAppointment(
+      booking(agent.id, AT("2026-10-01T14:00:00Z"), AT("2026-10-01T15:00:00Z")),
+    );
 
     await expect(
-      createAppointment(booking(agent.id, AT("2026-10-01T15:00:00Z"), AT("2026-10-01T16:00:00Z")))
+      createAppointment(
+        booking(agent.id, AT("2026-10-01T15:00:00Z"), AT("2026-10-01T16:00:00Z")),
+      ),
     ).resolves.toBeDefined();
   });
 
   it("does not hold a block for another agent", async () => {
     const [one, two] = [await makeAgent(), await makeAgent()];
-    await createAppointment(booking(one.id, AT("2026-10-01T14:00:00Z"), AT("2026-10-01T15:00:00Z")));
+    await createAppointment(
+      booking(one.id, AT("2026-10-01T14:00:00Z"), AT("2026-10-01T15:00:00Z")),
+    );
 
     await expect(
-      createAppointment(booking(two.id, AT("2026-10-01T14:00:00Z"), AT("2026-10-01T15:00:00Z")))
+      createAppointment(
+        booking(two.id, AT("2026-10-01T14:00:00Z"), AT("2026-10-01T15:00:00Z")),
+      ),
     ).resolves.toBeDefined();
   });
 
@@ -57,7 +69,9 @@ describe("appointments_no_overlap", () => {
     });
 
     await expect(
-      createAppointment(booking(agent.id, AT("2026-10-01T14:00:00Z"), AT("2026-10-01T15:00:00Z")))
+      createAppointment(
+        booking(agent.id, AT("2026-10-01T14:00:00Z"), AT("2026-10-01T15:00:00Z")),
+      ),
     ).resolves.toBeDefined();
   });
 
@@ -76,13 +90,19 @@ describe("appointments_no_overlap", () => {
     await createAppointment(request);
 
     await expect(
-      createAppointment(booking(agent.id, AT("2026-10-01T14:00:00Z"), AT("2026-10-01T15:00:00Z")))
+      createAppointment(
+        booking(agent.id, AT("2026-10-01T14:00:00Z"), AT("2026-10-01T15:00:00Z")),
+      ),
     ).resolves.toBeDefined();
   });
 
   it("lets exactly one of two simultaneous bookings through", async () => {
     const agent = await makeAgent();
-    const slot = booking(agent.id, AT("2026-10-05T09:00:00Z"), AT("2026-10-05T10:00:00Z"));
+    const slot = booking(
+      agent.id,
+      AT("2026-10-05T09:00:00Z"),
+      AT("2026-10-05T10:00:00Z"),
+    );
 
     const results = await Promise.allSettled([
       createAppointment(slot),
@@ -90,7 +110,9 @@ describe("appointments_no_overlap", () => {
     ]);
 
     expect(results.filter((r) => r.status === "fulfilled")).toHaveLength(1);
-    const rejected = results.find((r) => r.status === "rejected") as PromiseRejectedResult;
+    const rejected = results.find(
+      (r) => r.status === "rejected",
+    ) as PromiseRejectedResult;
     expect(rejected.reason).toBeInstanceOf(SlotTaken);
   });
 });

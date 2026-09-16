@@ -7,7 +7,7 @@ export type CallerRow = typeof callers.$inferSelect;
 /** Null for a withheld number: an anonymous caller has no identity to key a row on. */
 export async function upsertCaller(
   agentId: string,
-  callerPhone: string | null
+  callerPhone: string | null,
 ): Promise<CallerRow | null> {
   if (!callerPhone) return null;
 
@@ -33,7 +33,7 @@ export async function upsertCaller(
 export async function setCallerName(
   agentId: string,
   callerId: string,
-  name: string
+  name: string,
 ): Promise<CallerRow | null> {
   const trimmed = name.trim();
   if (!trimmed) return null;

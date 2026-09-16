@@ -30,7 +30,7 @@ const agentFields = {
 export type AgentConfig = { [K in keyof typeof agentFields]: AgentRow[K] };
 
 export async function resolveAgentByClerkUserId(
-  clerkUserId: string
+  clerkUserId: string,
 ): Promise<AgentConfig | null> {
   const rows = await db
     .select(agentFields)
@@ -41,7 +41,11 @@ export async function resolveAgentByClerkUserId(
 }
 
 export async function getAgentById(id: string): Promise<AgentConfig | null> {
-  const rows = await db.select(agentFields).from(agents).where(eq(agents.id, id)).limit(1);
+  const rows = await db
+    .select(agentFields)
+    .from(agents)
+    .where(eq(agents.id, id))
+    .limit(1);
   return rows[0] ?? null;
 }
 
@@ -100,13 +104,31 @@ export async function createAgent(input: {
 
 export async function updateAgent(
   id: string,
-  patch: Partial<Pick<AgentRow,
-    | "businessName" | "personaName" | "industry" | "description"
-    | "greeting" | "farewell" | "fallback"
-    | "businessHours" | "minNoticeMinutes" | "maxAdvanceDays"
-    | "recordCalls" | "checklistDismissed" | "hoursSeen" | "timezone"
-    | "calendarProvider" | "calendarExternalId" | "calendarPayload"
-  >>
+  patch: Partial<
+    Pick<
+      AgentRow,
+      | "businessName"
+      | "personaName"
+      | "industry"
+      | "description"
+      | "greeting"
+      | "farewell"
+      | "fallback"
+      | "businessHours"
+      | "minNoticeMinutes"
+      | "maxAdvanceDays"
+      | "recordCalls"
+      | "checklistDismissed"
+      | "hoursSeen"
+      | "timezone"
+      | "calendarProvider"
+      | "calendarExternalId"
+      | "calendarPayload"
+    >
+  >,
 ): Promise<void> {
-  await db.update(agents).set({ ...patch, updatedAt: new Date() }).where(eq(agents.id, id));
+  await db
+    .update(agents)
+    .set({ ...patch, updatedAt: new Date() })
+    .where(eq(agents.id, id));
 }

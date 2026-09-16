@@ -14,7 +14,11 @@ import { db } from "@receptionist/core/db/client.js";
 import { calls as callsTable } from "@receptionist/core/db/schema.js";
 import { upsertCaller } from "@receptionist/core/repositories/callers.js";
 import { createCall, finishCall } from "@receptionist/core/repositories/calls.js";
-import { recordingEnabled, startCallRecording, stopCallRecording } from "@receptionist/core/providers/storage.js";
+import {
+  recordingEnabled,
+  startCallRecording,
+  stopCallRecording,
+} from "@receptionist/core/providers/storage.js";
 import { getGoogleOAuthToken } from "@receptionist/core/providers/googleAuth.js";
 import type { AgentDeps, CallState, SlotStore } from "./receptionist/deps.js";
 import { buildSessionConfig, buildKeyterms } from "./session/pipeline.js";
@@ -34,7 +38,10 @@ async function stopEgressWithRetry(egressId: string, maxAttempts = 3): Promise<v
       return;
     } catch (err) {
       if (attempt === maxAttempts) {
-        console.error(`[worker] stopEgress failed after ${maxAttempts} attempts — egress ${egressId} may be leaking:`, err);
+        console.error(
+          `[worker] stopEgress failed after ${maxAttempts} attempts — egress ${egressId} may be leaking:`,
+          err,
+        );
         return;
       }
       await new Promise((resolve) => setTimeout(resolve, attempt * 1000));
@@ -56,7 +63,9 @@ export default defineAgent({
     const isTestSession = participant.attributes["testSession"] === "true";
 
     const callerPhone = resolveCallerPhone(participant.attributes, isTestSession);
-    const rawTrunk = !isTestSession ? (participant.attributes["sip.trunkPhoneNumber"] ?? "") : "";
+    const rawTrunk = !isTestSession
+      ? (participant.attributes["sip.trunkPhoneNumber"] ?? "")
+      : "";
     const trunkPhone = rawTrunk && !rawTrunk.startsWith("+") ? `+${rawTrunk}` : rawTrunk;
 
     // Blocks the critical path on a cache miss: the caller hears silence for one
@@ -66,13 +75,17 @@ export default defineAgent({
     if (isTestSession) {
       const agentId = participant.attributes["agentId"];
       if (!agentId) {
-        console.error("[worker] no agentId in participant attributes for test session — dropping");
+        console.error(
+          "[worker] no agentId in participant attributes for test session — dropping",
+        );
         return;
       }
       resolved = await resolveAgent({ agentId });
     } else {
       if (!trunkPhone) {
-        console.error(`[worker] No trunkPhoneNumber found for SIP participant — dropping`);
+        console.error(
+          `[worker] No trunkPhoneNumber found for SIP participant — dropping`,
+        );
         return;
       }
       resolved = await resolveAgent({ phoneNumber: trunkPhone });
@@ -83,7 +96,9 @@ export default defineAgent({
       return;
     }
     const { agent, services, knowledge } = resolved;
-    console.log(`[worker] resolved agent: ${agent.id}${isTestSession ? " (test session)" : ""}`);
+    console.log(
+      `[worker] resolved agent: ${agent.id}${isTestSession ? " (test session)" : ""}`,
+    );
 
     // Fire Google OAuth token fetch in background (no await — resolves while greeting plays).
     //    Token is cached at module level with a 50-minute TTL so repeat calls skip the network.
@@ -129,7 +144,10 @@ export default defineAgent({
     const { sessionOptions, inputOptions } = buildSessionConfig({
       isTestSession,
       vad: ctx.proc.userData.vad as silero.VAD,
-      keyterms: buildKeyterms(agent.businessName, services.map((s) => s.name)),
+      keyterms: buildKeyterms(
+        agent.businessName,
+        services.map((s) => s.name),
+      ),
     });
 
     // Create and start session
@@ -152,7 +170,7 @@ export default defineAgent({
     session.on(voice.AgentSessionEventTypes.SpeechCreated, (ev) => {
       console.log(
         `[speech] created call=${callId} source=${ev.source ?? "?"} ` +
-          `userInitiated=${ev.userInitiated ?? "?"}`
+          `userInitiated=${ev.userInitiated ?? "?"}`,
       );
     });
 
@@ -160,7 +178,7 @@ export default defineAgent({
       console.warn(
         `[speech] FALSE INTERRUPTION call=${callId} — the agent was cut off by ` +
           `something that turned out not to be the caller. On a laptop this is ` +
-          `usually the agent's own voice returning through the microphone.`
+          `usually the agent's own voice returning through the microphone.`,
       );
     });
 
@@ -177,7 +195,7 @@ export default defineAgent({
         `[worker] PIPELINE ERROR call=${callId} agent=${agent.id} ` +
           `type=${err.type} source=${ev.source?.label ?? "unknown"} ` +
           `recoverable=${err.recoverable}:`,
-        cause instanceof Error ? cause.message : cause
+        cause instanceof Error ? cause.message : cause,
       );
     });
 
@@ -205,7 +223,8 @@ export default defineAgent({
 
         const transcript = extractTranscript(session.history);
         const isAbandoned =
-          ev.reason === voice.CloseReason.PARTICIPANT_DISCONNECTED && transcript.length <= 1;
+          ev.reason === voice.CloseReason.PARTICIPANT_DISCONNECTED &&
+          transcript.length <= 1;
 
         const summary = await generateCallSummary(transcript);
 
@@ -225,7 +244,11 @@ export default defineAgent({
 
         console.log(`[worker] call ${callId} finalized: ${outcome}`);
       } catch (err) {
-        console.error("[worker] CRITICAL: close handler failed — call not finalized:", callId, err);
+        console.error(
+          "[worker] CRITICAL: close handler failed — call not finalized:",
+          callId,
+          err,
+        );
         // A null outcome and ended_at is indistinguishable from a call still
         // running, so the row is marked even when finalisation failed.
         if (!isTestSession) {
@@ -235,7 +258,7 @@ export default defineAgent({
             summary: null,
             recordingKey: callRecordingKey,
           }).catch((writeErr: unknown) =>
-            console.error("[worker] could not mark call as errored:", callId, writeErr)
+            console.error("[worker] could not mark call as errored:", callId, writeErr),
           );
         }
       }
@@ -297,7 +320,9 @@ export default defineAgent({
         db.update(callsTable)
           .set({ callerId: caller.id })
           .where(eq(callsTable.id, callId))
-          .catch((err: unknown) => console.error("[worker] callerId backfill failed:", err));
+          .catch((err: unknown) =>
+            console.error("[worker] callerId backfill failed:", err),
+          );
       }
     }
 
@@ -309,5 +334,5 @@ cli.runApp(
   new ServerOptions({
     agent: fileURLToPath(import.meta.url),
     agentName: "receptionist",
-  })
+  }),
 );

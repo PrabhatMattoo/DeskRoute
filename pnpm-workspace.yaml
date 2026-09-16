@@ -6,8 +6,8 @@ overrides:
   vite: "npm:rolldown-vite@7.1.14"
 
 allowBuilds:
-  '@ffmpeg-installer/darwin-arm64': true
-  '@livekit/local-inference': true
+  "@ffmpeg-installer/darwin-arm64": true
+  "@livekit/local-inference": true
   esbuild: true
   msw: true
   onnxruntime-node: true

@@ -1,4 +1,9 @@
-import { WEEKDAYS, type BusinessHours, type TimeInterval, type Weekday } from "@receptionist/shared";
+import {
+  WEEKDAYS,
+  type BusinessHours,
+  type TimeInterval,
+  type Weekday,
+} from "@receptionist/shared";
 import type { AgentDeps } from "./deps.js";
 
 /** A question/answer pair from the agent's knowledge base. */
@@ -20,7 +25,7 @@ function partsIn(date: Date, timeZone: string) {
   });
 
   const parts = Object.fromEntries(
-    fmt.formatToParts(date).map((p) => [p.type, p.value])
+    fmt.formatToParts(date).map((p) => [p.type, p.value]),
   ) as Record<string, string>;
 
   return {
@@ -64,13 +69,15 @@ function speakTime(hhmm: string): string {
 
 function speakIntervals(intervals: TimeInterval[]): string {
   if (intervals.length === 0) return "Closed";
-  return intervals.map((i) => `${speakTime(i.start)} to ${speakTime(i.end)}`).join(", and ");
+  return intervals
+    .map((i) => `${speakTime(i.start)} to ${speakTime(i.end)}`)
+    .join(", and ");
 }
 
 /** The weekly pattern plus any exception inside the window the date anchors cover. */
 function buildHoursBlock(hours: BusinessHours, now: Date, timeZone: string): string {
   const weekly = WEEKDAYS.map(
-    (day) => `- ${WEEKDAY_LABELS[day]}: ${speakIntervals(hours.weekly[day] ?? [])}`
+    (day) => `- ${WEEKDAY_LABELS[day]}: ${speakIntervals(hours.weekly[day] ?? [])}`,
   ).join("\n");
 
   // Only exceptions the caller could plausibly be asking about. A closure eight

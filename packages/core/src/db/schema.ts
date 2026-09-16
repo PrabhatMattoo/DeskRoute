@@ -43,10 +43,7 @@ export const callOutcomeEnum = pgEnum("call_outcome", [
   "error",
 ]);
 
-export const escalationStatusEnum = pgEnum("escalation_status", [
-  "pending",
-  "resolved",
-]);
+export const escalationStatusEnum = pgEnum("escalation_status", ["pending", "resolved"]);
 
 export const appointmentStatusEnum = pgEnum("appointment_status", [
   "requested",
@@ -107,7 +104,7 @@ export const phoneNumbers = pgTable(
     label: text("label").notNull().default(""),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },
-  (table) => [index("phone_numbers_agent_idx").on(table.agentId)]
+  (table) => [index("phone_numbers_agent_idx").on(table.agentId)],
 );
 
 /** Somebody who phoned. */
@@ -127,7 +124,7 @@ export const callers = pgTable(
   (table) => [
     unique("callers_agent_phone_unique").on(table.agentId, table.phoneNumber),
     index("callers_agent_last_seen_idx").on(table.agentId, table.lastSeenAt),
-  ]
+  ],
 );
 
 export const calls = pgTable(
@@ -152,7 +149,7 @@ export const calls = pgTable(
     disclosureVersion: text("disclosure_version"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },
-  (table) => [index("calls_agent_started_at_idx").on(table.agentId, table.startedAt)]
+  (table) => [index("calls_agent_started_at_idx").on(table.agentId, table.startedAt)],
 );
 
 export const escalations = pgTable(
@@ -178,12 +175,12 @@ export const escalations = pgTable(
     index("escalations_agent_status_created_at_idx").on(
       table.agentId,
       table.status,
-      table.createdAt
+      table.createdAt,
     ),
     uniqueIndex("escalations_call_question_dedup_idx")
       .on(table.callId, sql`lower(${table.question})`)
       .where(sql`${table.callId} IS NOT NULL`),
-  ]
+  ],
 );
 
 export const knowledgeItems = pgTable(
@@ -201,7 +198,9 @@ export const knowledgeItems = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },
-  (table) => [index("knowledge_items_agent_created_at_idx").on(table.agentId, table.createdAt)]
+  (table) => [
+    index("knowledge_items_agent_created_at_idx").on(table.agentId, table.createdAt),
+  ],
 );
 
 /** A table, so a booking points at a permanent id that survives a rename. */
@@ -228,7 +227,7 @@ export const services = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },
-  (table) => [index("services_agent_position_idx").on(table.agentId, table.position)]
+  (table) => [index("services_agent_position_idx").on(table.agentId, table.position)],
 );
 
 export const appointments = pgTable(
@@ -255,5 +254,7 @@ export const appointments = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },
-  (table) => [index("appointments_agent_start_time_idx").on(table.agentId, table.startTime)]
+  (table) => [
+    index("appointments_agent_start_time_idx").on(table.agentId, table.startTime),
+  ],
 );

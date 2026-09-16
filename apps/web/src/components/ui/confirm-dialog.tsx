@@ -54,7 +54,11 @@ export function ConfirmDialog({
           {description && <DialogDescription>{description}</DialogDescription>}
         </DialogHeader>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={pending}>
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={pending}
+          >
             {cancelLabel}
           </Button>
           <Button

@@ -19,7 +19,7 @@ export class CalendarScopeMissingError extends Error {
 export async function listCalendars(accessToken: string): Promise<CalendarOption[]> {
   const res = await fetch(
     `${GOOGLE_CALENDAR_BASE}/users/me/calendarList?minAccessRole=writer`,
-    { headers: { Authorization: `Bearer ${accessToken}` } }
+    { headers: { Authorization: `Bearer ${accessToken}` } },
   );
 
   // A sign-in token carries no calendar scope, which is the normal state of a
@@ -55,7 +55,7 @@ export async function fetchBusyRanges(
   accessToken: string,
   calendarId: string,
   timeMinIso: string,
-  timeMaxIso: string
+  timeMaxIso: string,
 ): Promise<BusyRange[]> {
   const res = await fetch(`${GOOGLE_CALENDAR_BASE}/freeBusy`, {
     method: "POST",
@@ -95,7 +95,7 @@ export async function createCalendarEvent(
     endIso: string;
     timezone: string;
     description?: string;
-  }
+  },
 ): Promise<string> {
   const res = await fetch(
     `${GOOGLE_CALENDAR_BASE}/calendars/${encodeURIComponent(calendarId)}/events`,
@@ -111,7 +111,7 @@ export async function createCalendarEvent(
         start: { dateTime: event.startIso, timeZone: event.timezone },
         end: { dateTime: event.endIso, timeZone: event.timezone },
       }),
-    }
+    },
   );
 
   if (!res.ok) {
@@ -126,14 +126,14 @@ export async function createCalendarEvent(
 export async function deleteCalendarEvent(
   accessToken: string,
   calendarId: string,
-  eventId: string
+  eventId: string,
 ): Promise<void> {
   const res = await fetch(
     `${GOOGLE_CALENDAR_BASE}/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(eventId)}`,
     {
       method: "DELETE",
       headers: { Authorization: `Bearer ${accessToken}` },
-    }
+    },
   );
 
   if (!res.ok && res.status !== 410) {

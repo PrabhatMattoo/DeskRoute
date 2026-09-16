@@ -1,4 +1,4 @@
-import { Toaster as SonnerToaster } from "sonner"
+import { Toaster as SonnerToaster } from 'sonner'
 
 /** Sonner's own Toaster with the product's tokens: the registry wrapper pulls
  *  `next-themes`, which a Vite build does not have. */
@@ -20,18 +20,18 @@ function Toaster({ ...props }: React.ComponentProps<typeof SonnerToaster>) {
           /* The `!` is load-bearing: sonner styles the panel through two
              attribute selectors, which beat a bare utility class. */
           toast:
-            "group rounded-2xl! border-[0.5px]! border-border! bg-popover! p-4! text-base! text-popover-foreground! shadow-medium!",
-          title: "font-medium text-foreground!",
-          description: "text-muted-foreground!",
-          actionButton: "bg-primary text-primary-foreground",
-          cancelButton: "bg-control text-secondary-foreground shadow-control",
+            'group rounded-2xl! border-[0.5px]! border-border! bg-popover! p-4! text-base! text-popover-foreground! shadow-medium!',
+          title: 'font-medium text-foreground!',
+          description: 'text-muted-foreground!',
+          actionButton: 'bg-primary text-primary-foreground',
+          cancelButton: 'bg-control text-secondary-foreground shadow-control',
           /* Icons are pinned because they carry a hue of their own. Red is the
              exception: destructive is the one thing worth a colour. */
-          icon: "text-muted-foreground",
-          error: "text-destructive [&_[data-icon]]:text-destructive",
-          success: "text-foreground",
-          warning: "text-foreground",
-          info: "text-foreground",
+          icon: 'text-muted-foreground',
+          error: 'text-destructive [&_[data-icon]]:text-destructive',
+          success: 'text-foreground',
+          warning: 'text-foreground',
+          info: 'text-foreground',
         },
       }}
       {...props}

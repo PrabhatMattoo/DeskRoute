@@ -35,14 +35,20 @@ const OVERLAP_CONSTRAINT = "appointments_no_overlap";
 
 /** Drizzle wraps the driver error, so the pg code and constraint sit on `cause`. */
 function isSlotTaken(err: unknown): boolean {
-  for (let e = err, depth = 0; e && depth < 5; e = (e as { cause?: unknown }).cause, depth++) {
+  for (
+    let e = err, depth = 0;
+    e && depth < 5;
+    e = (e as { cause?: unknown }).cause, depth++
+  ) {
     const { code, constraint } = e as { code?: string; constraint?: string };
     if (code === EXCLUSION_VIOLATION && constraint === OVERLAP_CONSTRAINT) return true;
   }
   return false;
 }
 
-export async function createAppointment(input: CreateAppointmentInput): Promise<AppointmentRow> {
+export async function createAppointment(
+  input: CreateAppointmentInput,
+): Promise<AppointmentRow> {
   try {
     const rows = await db
       .insert(appointments)
@@ -71,7 +77,7 @@ export async function createAppointment(input: CreateAppointmentInput): Promise<
 /** Written once the calendar event exists, so the row names a live event. */
 export async function attachExternalEvent(
   appointmentId: string,
-  externalEventId: string
+  externalEventId: string,
 ): Promise<void> {
   await db
     .update(appointments)
@@ -124,8 +130,8 @@ export async function getUpcomingByPhone(agentId: string, callerPhone: string) {
         eq(appointments.agentId, agentId),
         eq(appointments.callerPhone, callerPhone),
         gt(appointments.startTime, new Date()),
-        ne(appointments.status, "cancelled")
-      )
+        ne(appointments.status, "cancelled"),
+      ),
     )
     .orderBy(asc(appointments.startTime))
     .limit(10);
@@ -133,7 +139,7 @@ export async function getUpcomingByPhone(agentId: string, callerPhone: string) {
 
 export async function cancelAppointmentById(
   appointmentId: string,
-  agentId: string
+  agentId: string,
 ): Promise<AppointmentRow | null> {
   const rows = await db
     .update(appointments)

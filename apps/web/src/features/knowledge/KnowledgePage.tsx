@@ -20,7 +20,10 @@ export default function KnowledgePage() {
   const [search, setSearch] = useState('')
   const [pendingDelete, setPendingDelete] = useState<KnowledgeItem | null>(null)
 
-  const { data, isLoading } = useQuery({ queryKey: keys.knowledge, queryFn: fetchers.knowledge })
+  const { data, isLoading } = useQuery({
+    queryKey: keys.knowledge,
+    queryFn: fetchers.knowledge,
+  })
 
   const del = useMutation({
     mutationFn: (id: string) => apiClient.delete(`/admin/knowledge/${id}`),
@@ -93,8 +96,12 @@ export default function KnowledgePage() {
                 className="group grid grid-cols-[minmax(0,1fr)_96px_28px] items-start gap-3 rounded-lg border-t border-border px-2.5 py-3 hover:bg-hover"
               >
                 <div className="min-w-0">
-                  <p className="leading-snug font-medium text-foreground">{item.question}</p>
-                  <p className="mt-1 leading-relaxed text-muted-foreground">{item.answer}</p>
+                  <p className="leading-snug font-medium text-foreground">
+                    {item.question}
+                  </p>
+                  <p className="mt-1 leading-relaxed text-muted-foreground">
+                    {item.answer}
+                  </p>
                 </div>
                 <span className="text-right text-muted-foreground tabular-nums">
                   {formatDate(item.createdAt, zone)}

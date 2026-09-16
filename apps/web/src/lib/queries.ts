@@ -31,16 +31,21 @@ export const keys = {
 
 export const fetchers = {
   metrics: (period: Period) =>
-    apiClient.get<DashboardMetrics>(`/admin/metrics?period=${period}`).then((r) => r.data),
+    apiClient
+      .get<DashboardMetrics>(`/admin/metrics?period=${period}`)
+      .then((r) => r.data),
 
   escalations: (status: EscalationStatus) =>
-    apiClient.get<EscalationItem[]>(`/admin/escalations?status=${status}`).then((r) => r.data),
+    apiClient
+      .get<EscalationItem[]>(`/admin/escalations?status=${status}`)
+      .then((r) => r.data),
 
-  knowledge: () =>
-    apiClient.get<KnowledgeItem[]>('/admin/knowledge').then((r) => r.data),
+  knowledge: () => apiClient.get<KnowledgeItem[]>('/admin/knowledge').then((r) => r.data),
 
   calls: ({ limit = 25, offset = 0 }: { limit?: number; offset?: number } = {}) =>
-    apiClient.get<CallListItem[]>(`/admin/calls?limit=${limit}&offset=${offset}`).then((r) => r.data),
+    apiClient
+      .get<CallListItem[]>(`/admin/calls?limit=${limit}&offset=${offset}`)
+      .then((r) => r.data),
 
   call: (id: string) =>
     apiClient.get<CallDetail>(`/admin/calls/${id}`).then((r) => r.data),
@@ -50,8 +55,7 @@ export const fetchers = {
 
   session: () =>
     apiClient.get<{ onboarded: boolean }>('/onboarding/session').then((r) => r.data),
-  settings: () =>
-    apiClient.get<AppSettings>('/admin/settings').then((r) => r.data),
+  settings: () => apiClient.get<AppSettings>('/admin/settings').then((r) => r.data),
 
   appointments: () =>
     apiClient.get<AppointmentItem[]>('/admin/appointments').then((r) => r.data),

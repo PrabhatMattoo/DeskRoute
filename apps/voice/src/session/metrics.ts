@@ -75,7 +75,7 @@ export class CallMetrics {
     const turns = Math.min(this.eou.length, this.llmTtft.length, this.ttsTtfb.length);
     const response = Array.from(
       { length: turns },
-      (_, i) => this.eou[i]! + this.llmTtft[i]! + this.ttsTtfb[i]!
+      (_, i) => this.eou[i]! + this.llmTtft[i]! + this.ttsTtfb[i]!,
     );
 
     return {
@@ -95,7 +95,7 @@ export class CallMetrics {
         `eou_p50=${r.eouDelayMs.p50} eou_p95=${r.eouDelayMs.p95} ` +
         `llm_ttft_p50=${r.llmTtftMs.p50} llm_ttft_p95=${r.llmTtftMs.p95} ` +
         `tts_ttfb_p50=${r.ttsTtfbMs.p50} tts_ttfb_p95=${r.ttsTtfbMs.p95} ` +
-        `response_p50=${r.responseMs.p50} response_p95=${r.responseMs.p95}`
+        `response_p50=${r.responseMs.p50} response_p95=${r.responseMs.p95}`,
     );
   }
 }

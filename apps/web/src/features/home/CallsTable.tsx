@@ -67,7 +67,8 @@ function columns(zone: string | undefined): Column<CallListItem>[] {
 export function CallsTable() {
   const sentinelRef = useRef<HTMLDivElement>(null)
   const zone = useAgentZone()
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useCallsQuery()
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
+    useCallsQuery()
 
   useEffect(() => {
     const node = sentinelRef.current

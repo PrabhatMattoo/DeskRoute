@@ -40,9 +40,9 @@ describe("countAfterHoursCalls", () => {
     });
     await makeCall(t.id, { startedAt: new Date("2026-08-19T13:00:00Z") });
 
-    expect(
-      await countAfterHoursCalls(t.id, SINCE, NINE_TO_FIVE, "America/Chicago")
-    ).toBe(1);
+    expect(await countAfterHoursCalls(t.id, SINCE, NINE_TO_FIVE, "America/Chicago")).toBe(
+      1,
+    );
   });
 
   it("counts every call on a day with no hours at all", async () => {

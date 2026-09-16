@@ -38,7 +38,7 @@ export function createApp({ allowedOrigins }: AppOptions) {
       allowMethods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
       allowHeaders: ["Authorization", "Content-Type"],
       maxAge: 86_400,
-    })
+    }),
   );
 
   app.route("/api", routes);

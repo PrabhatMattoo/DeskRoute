@@ -130,9 +130,7 @@ export function createAgentTools(deps: AgentDeps) {
         "You must call this before saying any time out loud — you have no way to know what is free otherwise, and a time you invent is a customer turning up to a closed door. " +
         "Returns up to three slots, each with an id. Read the times to the caller in plain words and keep the ids to yourself.",
       parameters: z.object({
-        service: z
-          .string()
-          .describe("The service the caller wants, as they said it."),
+        service: z.string().describe("The service the caller wants, as they said it."),
         preferredDate: z
           .string()
           .nullable()
@@ -167,8 +165,7 @@ export function createAgentTools(deps: AgentDeps) {
         const token = await deps.getGoogleToken();
         if (!token) {
           return {
-            error:
-              "Calendar authentication unavailable. Create an escalation.",
+            error: "Calendar authentication unavailable. Create an escalation.",
           };
         }
 
@@ -201,9 +198,7 @@ export function createAgentTools(deps: AgentDeps) {
           return {
             slots: [],
             note: `No times are available${
-              preferredDate
-                ? ` around ${describeDate(preferredDate, timeZone)}`
-                : ""
+              preferredDate ? ` around ${describeDate(preferredDate, timeZone)}` : ""
             }. Offer to have the team call back, or create an escalation.`,
           };
         }
@@ -324,8 +319,7 @@ export function createAgentTools(deps: AgentDeps) {
           deps.callState.wasBooked = true;
           return {
             booked: false,
-            reason:
-              "Booking failed — appointment request saved, team will confirm.",
+            reason: "Booking failed — appointment request saved, team will confirm.",
           };
         }
 
@@ -362,23 +356,19 @@ export function createAgentTools(deps: AgentDeps) {
               ? ` (appointment ${describeSlot(slot, timeZone)}; includes setup and cleanup)`
               : "";
 
-          const eventId = await createCalendarEvent(
-            token,
-            deps.calendarExternalId,
-            {
-              // The title leads with the appointment window: the event spans the
-              // padded block and Google renders it in the viewer's timezone.
-              summary: `${service.name} ${describeAppointmentWindow(slot, timeZone)} — ${
-                bookedName ?? deps.callerPhone ?? "name not given"
-              }`,
-              // The block, not the appointment: the event must reserve setup and
-              // cleanup or the next booking lands on top of them.
-              startIso: slot.blockStart.toISOString(),
-              endIso: slot.blockEnd.toISOString(),
-              timezone: timeZone,
-              description: `Booked by the AI receptionist${padded}`,
-            },
-          );
+          const eventId = await createCalendarEvent(token, deps.calendarExternalId, {
+            // The title leads with the appointment window: the event spans the
+            // padded block and Google renders it in the viewer's timezone.
+            summary: `${service.name} ${describeAppointmentWindow(slot, timeZone)} — ${
+              bookedName ?? deps.callerPhone ?? "name not given"
+            }`,
+            // The block, not the appointment: the event must reserve setup and
+            // cleanup or the next booking lands on top of them.
+            startIso: slot.blockStart.toISOString(),
+            endIso: slot.blockEnd.toISOString(),
+            timezone: timeZone,
+            description: `Booked by the AI receptionist${padded}`,
+          });
           await attachExternalEvent(appointment.id, eventId);
         } catch (err) {
           console.error("[agent] createCalendarEvent failed:", err);
@@ -386,8 +376,7 @@ export function createAgentTools(deps: AgentDeps) {
           deps.callState.wasBooked = true;
           return {
             booked: false,
-            reason:
-              "Booking failed — appointment request saved, team will confirm.",
+            reason: "Booking failed — appointment request saved, team will confirm.",
           };
         }
 
@@ -412,10 +401,7 @@ export function createAgentTools(deps: AgentDeps) {
               "Ask the caller to read out the phone number their appointment was booked under.",
           };
         }
-        const upcoming = await getUpcomingByPhone(
-          agentId,
-          deps.callerPhone!,
-        );
+        const upcoming = await getUpcomingByPhone(agentId, deps.callerPhone!);
         if (upcoming.length === 0) {
           return {
             appointments: [],
@@ -438,15 +424,10 @@ export function createAgentTools(deps: AgentDeps) {
       description:
         "Cancel a confirmed appointment. Only call after you have read the appointment details back to the caller and they explicitly confirmed they want to cancel.",
       parameters: z.object({
-        appointmentId: z
-          .string()
-          .describe("The ID of the appointment to cancel."),
+        appointmentId: z.string().describe("The ID of the appointment to cancel."),
       }),
       execute: async ({ appointmentId }) => {
-        const cancelled = await cancelAppointmentById(
-          appointmentId,
-          agentId,
-        );
+        const cancelled = await cancelAppointmentById(appointmentId, agentId);
         if (!cancelled) return { error: "Appointment not found." };
 
         if (cancelled.externalEventId && deps.calendarExternalId) {

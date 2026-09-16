@@ -148,18 +148,11 @@ export function ConnectionsPanel({ settings }: { settings: AppSettings }) {
 
   return (
     <div>
-      <Section
-        title="Connections"
-        lede="What your agent is connected to."
-      >
+      <Section title="Connections" lede="What your agent is connected to.">
         <ConnectionRow
           icon={Phone}
           title="Phone number"
-          description={
-            phone
-              ? 'The number your customers call.'
-              : 'Not set up yet.'
-          }
+          description={phone ? 'The number your customers call.' : 'Not set up yet.'}
           connected={!!phone}
           onOpen={() => setOpen('phone')}
           actionLabel="Manage"
@@ -210,8 +203,8 @@ export function ConnectionsPanel({ settings }: { settings: AppSettings }) {
               </Button>
             </SubRow>
             <p className="mt-4 rounded-lg bg-sunk-1 p-3 text-muted-foreground">
-              Transfer and texts both need the carrier upgrade, and texts also need carrier
-              registration, which takes a few weeks.
+              Transfer and texts both need the carrier upgrade, and texts also need
+              carrier registration, which takes a few weeks.
             </p>
           </div>
         </SheetContent>
@@ -222,9 +215,7 @@ export function ConnectionsPanel({ settings }: { settings: AppSettings }) {
           <SheetHeader>
             <SheetTitle>Google Calendar</SheetTitle>
             <SheetDescription>
-              {calendarId
-                ? `Writing to ${calendarName ?? calendarId}`
-                : 'Not connected'}
+              {calendarId ? `Writing to ${calendarName ?? calendarId}` : 'Not connected'}
             </SheetDescription>
           </SheetHeader>
 
@@ -234,8 +225,8 @@ export function ConnectionsPanel({ settings }: { settings: AppSettings }) {
             ) : !data?.connected ? (
               <>
                 <p className="text-muted-foreground">
-                  Give your agent access to Google Calendar, then pick which calendar holds your
-                  appointments.
+                  Give your agent access to Google Calendar, then pick which calendar
+                  holds your appointments.
                 </p>
                 <Button onClick={grantAccess} disabled={granting} className="self-start">
                   <Calendar />
@@ -245,8 +236,8 @@ export function ConnectionsPanel({ settings }: { settings: AppSettings }) {
             ) : calendars.length === 0 ? (
               <>
                 <p className="text-muted-foreground">
-                  This Google account has no calendar you can add events to. Create one in Google
-                  Calendar, then check again.
+                  This Google account has no calendar you can add events to. Create one in
+                  Google Calendar, then check again.
                 </p>
                 <Button
                   variant="outline"
@@ -262,13 +253,17 @@ export function ConnectionsPanel({ settings }: { settings: AppSettings }) {
                   title="Calendar"
                   description="Where your agent writes appointments."
                 >
-                  <Select value={choice ?? calendarId ?? ''} onValueChange={(v) => setChoice(v ?? null)}>
+                  <Select
+                    value={choice ?? calendarId ?? ''}
+                    onValueChange={(v) => setChoice(v ?? null)}
+                  >
                     <SelectTrigger className="w-field-md">
                       {/* Base UI renders the value rather than the label without
                           this. A calendar id is not a name. */}
                       <SelectValue placeholder="Pick a calendar">
                         {(value) =>
-                          calendars.find((c) => c.id === value)?.summary ?? 'Pick a calendar'
+                          calendars.find((c) => c.id === value)?.summary ??
+                          'Pick a calendar'
                         }
                       </SelectValue>
                     </SelectTrigger>
@@ -294,7 +289,9 @@ export function ConnectionsPanel({ settings }: { settings: AppSettings }) {
                   <Button
                     size="sm"
                     onClick={() => selected && selectCalendar.mutate(selected)}
-                    disabled={!selected || selected.id === calendarId || selectCalendar.isPending}
+                    disabled={
+                      !selected || selected.id === calendarId || selectCalendar.isPending
+                    }
                   >
                     {selectCalendar.isPending ? 'Saving' : 'Use this calendar'}
                   </Button>

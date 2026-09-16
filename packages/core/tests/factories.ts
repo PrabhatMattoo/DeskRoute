@@ -69,7 +69,7 @@ export async function makeAgent(overrides: Partial<typeof agents.$inferInsert> =
 
 export async function makeCaller(
   agentId: string,
-  overrides: Partial<typeof callers.$inferInsert> = {}
+  overrides: Partial<typeof callers.$inferInsert> = {},
 ) {
   const rows = await db
     .insert(callers)
@@ -85,7 +85,7 @@ export async function makeCaller(
 
 export async function makeCall(
   agentId: string,
-  overrides: Partial<typeof calls.$inferInsert> = {}
+  overrides: Partial<typeof calls.$inferInsert> = {},
 ) {
   const rows = await db
     .insert(calls)
@@ -101,7 +101,7 @@ export async function makeCall(
 
 export async function makeEscalation(
   agentId: string,
-  overrides: Partial<typeof escalations.$inferInsert> = {}
+  overrides: Partial<typeof escalations.$inferInsert> = {},
 ) {
   const rows = await db
     .insert(escalations)
@@ -118,7 +118,7 @@ export async function makeEscalation(
 
 export async function makeAppointment(
   agentId: string,
-  overrides: Partial<typeof appointments.$inferInsert> = {}
+  overrides: Partial<typeof appointments.$inferInsert> = {},
 ) {
   const startTime = new Date(Date.now() + 24 * 60 * 60 * 1000);
   const rows = await db
@@ -138,7 +138,7 @@ export async function makeAppointment(
 
 export async function makeService(
   agentId: string,
-  overrides: Partial<typeof services.$inferInsert> = {}
+  overrides: Partial<typeof services.$inferInsert> = {},
 ) {
   const rows = await db
     .insert(services)
@@ -155,7 +155,7 @@ export async function makeService(
 
 export async function makePhoneNumber(
   agentId: string,
-  overrides: Partial<typeof phoneNumbers.$inferInsert> = {}
+  overrides: Partial<typeof phoneNumbers.$inferInsert> = {},
 ) {
   const rows = await db
     .insert(phoneNumbers)

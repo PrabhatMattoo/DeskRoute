@@ -17,8 +17,8 @@ export function SetupChecklist({ items }: { items: SetupItem[] }) {
           Three things before your agent can book
         </h2>
         <p className="mt-0.5 max-w-[62ch] text-muted-foreground">
-          It is already answering the phone. These are what it needs to put someone in your
-          diary rather than take a message.
+          It is already answering the phone. These are what it needs to put someone in
+          your diary rather than take a message.
         </p>
       </div>
 
@@ -55,7 +55,9 @@ export function SetupChecklist({ items }: { items: SetupItem[] }) {
                 <span className="text-muted-foreground">Done</span>
               ) : (
                 <>
-                  <span className="tabular-nums text-muted-foreground">{item.minutes}</span>
+                  <span className="tabular-nums text-muted-foreground">
+                    {item.minutes}
+                  </span>
                   <Button
                     size="sm"
                     variant={item.id === next?.id ? 'default' : 'outline'}

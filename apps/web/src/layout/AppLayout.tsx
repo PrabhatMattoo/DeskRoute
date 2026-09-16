@@ -40,10 +40,10 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { to: '/',              label: 'Home',         icon: Home,        end: true },
-  { to: '/escalations',   label: 'Escalations',  icon: AlertCircle },
-  { to: '/appointments',  label: 'Appointments', icon: Calendar },
-  { to: '/knowledge',     label: 'Knowledge',    icon: BookOpen },
+  { to: '/', label: 'Home', icon: Home, end: true },
+  { to: '/escalations', label: 'Escalations', icon: AlertCircle },
+  { to: '/appointments', label: 'Appointments', icon: Calendar },
+  { to: '/knowledge', label: 'Knowledge', icon: BookOpen },
 ]
 
 function isPathActive(pathname: string, item: NavItem): boolean {

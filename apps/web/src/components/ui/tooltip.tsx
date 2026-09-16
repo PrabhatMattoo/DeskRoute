@@ -1,19 +1,12 @@
-"use client"
+'use client'
 
-import { Tooltip as TooltipPrimitive } from "@base-ui/react/tooltip"
+import { Tooltip as TooltipPrimitive } from '@base-ui/react/tooltip'
 
-import { cn } from "@/lib/utils"
+import { cn } from '@/lib/utils'
 
-function TooltipProvider({
-  delay = 0,
-  ...props
-}: TooltipPrimitive.Provider.Props) {
+function TooltipProvider({ delay = 0, ...props }: TooltipPrimitive.Provider.Props) {
   return (
-    <TooltipPrimitive.Provider
-      data-slot="tooltip-provider"
-      delay={delay}
-      {...props}
-    />
+    <TooltipPrimitive.Provider data-slot="tooltip-provider" delay={delay} {...props} />
   )
 }
 
@@ -27,16 +20,16 @@ function TooltipTrigger({ ...props }: TooltipPrimitive.Trigger.Props) {
 
 function TooltipContent({
   className,
-  side = "top",
+  side = 'top',
   sideOffset = 4,
-  align = "center",
+  align = 'center',
   alignOffset = 0,
   children,
   ...props
 }: TooltipPrimitive.Popup.Props &
   Pick<
     TooltipPrimitive.Positioner.Props,
-    "align" | "alignOffset" | "side" | "sideOffset"
+    'align' | 'alignOffset' | 'side' | 'sideOffset'
   >) {
   return (
     <TooltipPrimitive.Portal>
@@ -50,8 +43,8 @@ function TooltipContent({
         <TooltipPrimitive.Popup
           data-slot="tooltip-content"
           className={cn(
-            "z-50 inline-flex w-fit max-w-xs origin-(--transform-origin) items-center gap-1.5 rounded-md bg-foreground px-3 py-1.5 text-sm text-background has-data-[slot=kbd]:pr-1.5 **:data-[slot=kbd]:relative **:data-[slot=kbd]:isolate **:data-[slot=kbd]:z-50 **:data-[slot=kbd]:rounded-sm data-open:enter-zoom data-closed:exit-zoom",
-            className
+            'z-50 inline-flex w-fit max-w-xs origin-(--transform-origin) items-center gap-1.5 rounded-md bg-foreground px-3 py-1.5 text-sm text-background has-data-[slot=kbd]:pr-1.5 **:data-[slot=kbd]:relative **:data-[slot=kbd]:isolate **:data-[slot=kbd]:z-50 **:data-[slot=kbd]:rounded-sm data-open:enter-zoom data-closed:exit-zoom',
+            className,
           )}
           {...props}
         >
