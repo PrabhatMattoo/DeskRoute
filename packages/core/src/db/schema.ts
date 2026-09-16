@@ -246,6 +246,9 @@ export const appointments = pgTable(
     serviceName: text("service_name").notNull(),
     startTime: timestamp("start_time", { withTimezone: true }),
     endTime: timestamp("end_time", { withTimezone: true }),
+    /** The padded block the calendar holds. What `appointments_no_overlap` guards. */
+    blockStart: timestamp("block_start", { withTimezone: true }),
+    blockEnd: timestamp("block_end", { withTimezone: true }),
     status: appointmentStatusEnum("status").notNull(),
     /** The event's id in whichever provider `agents.calendar_provider` names. */
     externalEventId: text("external_event_id"),

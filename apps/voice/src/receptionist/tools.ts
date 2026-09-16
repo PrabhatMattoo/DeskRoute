@@ -19,8 +19,11 @@ import {
 } from "@receptionist/core/domain/scheduling.js";
 import {
   createAppointment,
+  attachExternalEvent,
+  releaseToRequested,
   getUpcomingByPhone,
   cancelAppointmentById,
+  SlotTaken,
 } from "@receptionist/core/repositories/appointments.js";
 
 /** How many times the agent reads out at once. More than three is unfollowable. */
@@ -300,23 +303,60 @@ export function createAgentTools(deps: AgentDeps) {
           };
         }
 
+        const taken = {
+          error:
+            "That time was taken while you were talking. Call checkAvailability again and offer what is left.",
+        };
+
+        // The slot was computed while the caller was deciding, so it is
+        // re-checked immediately before the write.
+        let busy;
         try {
-          // The slot was computed while the caller was deciding, so it is
-          // re-checked immediately before the write.
-          const busy = await fetchBusyRanges(
+          busy = await fetchBusyRanges(
             token,
             deps.calendarExternalId,
             slot.blockStart.toISOString(),
             slot.blockEnd.toISOString(),
           );
-          if (filterByBusy([slot], busy).length === 0) {
-            deps.slots.held.delete(slotId);
-            return {
-              error:
-                "That time was taken while you were talking. Call checkAvailability again and offer what is left.",
-            };
-          }
+        } catch (err) {
+          console.error("[agent] freeBusy re-check failed:", err);
+          await createAppointment({ ...appointmentBase, status: "requested" });
+          deps.callState.wasBooked = true;
+          return {
+            booked: false,
+            reason:
+              "Booking failed — appointment request saved, team will confirm.",
+          };
+        }
 
+        if (filterByBusy([slot], busy).length === 0) {
+          deps.slots.held.delete(slotId);
+          return taken;
+        }
+
+        // `appointments_no_overlap` serialises two callers booking one slot at
+        // once, so the row is claimed before the calendar event is written.
+        let appointment;
+        try {
+          appointment = await createAppointment({
+            ...appointmentBase,
+            blockStart: slot.blockStart,
+            blockEnd: slot.blockEnd,
+            status: "confirmed",
+          });
+        } catch (err) {
+          if (err instanceof SlotTaken) {
+            deps.slots.held.delete(slotId);
+            return taken;
+          }
+          console.error("[agent] createAppointment failed:", err);
+          return {
+            error:
+              "That booking could not be saved. Create an escalation so the team can follow up.",
+          };
+        }
+
+        try {
           const padded =
             service.bufferBeforeMinutes > 0 || service.bufferAfterMinutes > 0
               ? ` (appointment ${describeSlot(slot, timeZone)}; includes setup and cleanup)`
@@ -339,22 +379,10 @@ export function createAgentTools(deps: AgentDeps) {
               description: `Booked by the AI receptionist${padded}`,
             },
           );
-
-          await createAppointment({
-            ...appointmentBase,
-            status: "confirmed",
-            externalEventId: eventId,
-          });
-          deps.callState.wasBooked = true;
-          deps.slots.held.delete(slotId);
-
-          return { booked: true, time: describeSlot(slot, timeZone) };
+          await attachExternalEvent(appointment.id, eventId);
         } catch (err) {
-          console.error("[agent] bookAppointment failed:", err);
-          await createAppointment({
-            ...appointmentBase,
-            status: "requested",
-          });
+          console.error("[agent] createCalendarEvent failed:", err);
+          await releaseToRequested(appointment.id);
           deps.callState.wasBooked = true;
           return {
             booked: false,
@@ -362,6 +390,10 @@ export function createAgentTools(deps: AgentDeps) {
               "Booking failed — appointment request saved, team will confirm.",
           };
         }
+
+        deps.callState.wasBooked = true;
+        deps.slots.held.delete(slotId);
+        return { booked: true, time: describeSlot(slot, timeZone) };
       },
     }),
 

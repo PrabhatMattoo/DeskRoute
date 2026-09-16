@@ -38,7 +38,7 @@ Self-hosted and open source. One deployment runs one or more agents.
 
 ## Versioning
 
-`major.minor.patch`, tracked in the root `package.json`. Currently **1.0.18**.
+`major.minor.patch`, tracked in the root `package.json`. Currently **1.0.19**.
 
 ## Screenshots
 

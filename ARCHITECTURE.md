@@ -82,7 +82,9 @@ Postgres 17, Drizzle, migrations in `packages/core/drizzle`. `docker-compose.yml
 
 **`services`** is a table rather than a blob, so a booking points at a permanent id that survives a rename. `required_resources` is `string[]`, plural from day one and empty for everyone.
 
-**`appointments`** holds `service_id` with `ON DELETE SET NULL` beside `service_name`, the name as it stood at booking, and its own `caller_name`. `external_event_id` names the event in whichever provider `agents.calendar_provider` names.
+**`appointments`** holds `service_id` with `ON DELETE SET NULL` beside `service_name`, the name as it stood at booking, and its own `caller_name`. `external_event_id` names the event in whichever provider `agents.calendar_provider` names. `block_start` and `block_end` are the padded block, carried so `appointments_no_overlap` can reserve it; they are null on a request that holds no time.
+
+`appointments_no_overlap` is an exclusion constraint, which Drizzle cannot express, so it lives by hand in `0001_booking_overlap_guard.sql`. Drizzle owns `0000_init` and regenerates it freely; hand-written SQL sits in numbered files after it and stays as written.
 
 `caller_phone` is nullable on `calls`, `escalations` and `appointments`.
 
@@ -278,6 +280,14 @@ Preemptive generation is on: the LLM starts before end-of-turn is confirmed, whi
 ### Extra time is dropped, not moved, at the edges of an opening period
 
 Before-time protects the appointment before this one, and the first of the day has nothing behind it. So a 45-minute service with 15 minutes of setup is offered 9:00 in a shop opening at 9:00, with the calendar holding from 9:00, and never 9:00 with a hold from 8:45, because nobody is there at 8:45. Closing mirrors it: the appointment may end exactly at close, and the clearing up is not held on a calendar the business has shut. Requiring the whole padded block to fit inside the period costs a 9-to-5 shop both its 9:00 and its 4:50.
+
+### Postgres claims the slot
+
+`bookAppointment` re-checks freeBusy immediately before writing, which catches a slot taken by a human with the diary open. Google reports a write only once it propagates, so two callers offered one slot both read it free and both are told the same time. `appointments_no_overlap` settles it: the constraint excludes overlapping `tstzrange(block_start, block_end)` per agent over confirmed rows, and the second insert waits on the first and then fails with `23P01`. The range is half-open, so an appointment ending at 15:00 sits beside one starting there, on the same edge `filterByBusy` uses.
+
+Both NULL guards are load-bearing: `tstzrange(NULL, NULL)` is the unbounded range, so the constraint takes only rows carrying a block.
+
+The row is claimed first and the calendar event written second, because a constraint that rejects after the event exists leaves an event nothing points at. A failed event write downgrades the row to `requested` and clears the block, which releases it.
 
 ### A calendar event spans the padded block
 

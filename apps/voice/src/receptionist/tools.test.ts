@@ -3,6 +3,11 @@ import { createAgentTools } from "./tools.js";
 import { makeAgentDeps } from "./fixtures.js";
 import { createEscalation } from "@receptionist/core/repositories/escalations.js";
 import { setCallerName } from "@receptionist/core/repositories/callers.js";
+import {
+  createAppointment,
+  SlotTaken,
+} from "@receptionist/core/repositories/appointments.js";
+import { createCalendarEvent } from "@receptionist/core/providers/calendar.js";
 
 /**
  * Every tool's `execute` must return a value to the model. A tool that resolves
@@ -30,8 +35,11 @@ vi.mock("@receptionist/core/providers/calendar.js", () => ({
 
 vi.mock("@receptionist/core/repositories/appointments.js", () => ({
   createAppointment: vi.fn(async () => ({ id: "appt-1" })),
+  attachExternalEvent: vi.fn(async () => {}),
+  releaseToRequested: vi.fn(async () => {}),
   getUpcomingByPhone: vi.fn(async () => []),
   cancelAppointmentById: vi.fn(async () => null),
+  SlotTaken: class SlotTaken extends Error {},
 }));
 
 vi.mock("@receptionist/core/repositories/escalations.js", () => ({
@@ -127,6 +135,57 @@ describe("every tool returns a result to the model", () => {
 
     expect(typeof result).not.toBe("function");
     expect(result).toEqual({ escalated: true });
+  });
+});
+
+/** Two callers offered one slot both clear the freeBusy re-check, so the database
+ *  is the only place the second can be stopped. */
+describe("a slot another caller took first", () => {
+  const offerThenBook = async (slotCallerName = "Prabhat") => {
+    const tools = createAgentTools(okCalendar());
+    const offered = (await tools.checkAvailability.execute(
+      { service: "Haircut", preferredDate: null, partOfDay: null },
+      runCtx()
+    )) as { slots?: { slotId: string }[] };
+
+    return tools.bookAppointment.execute(
+      { slotId: offered.slots![0]!.slotId, callerName: slotCallerName },
+      runCtx()
+    );
+  };
+
+  it("is reported to the model", async () => {
+    vi.mocked(createAppointment).mockRejectedValueOnce(new SlotTaken());
+
+    const result = await offerThenBook();
+
+    expect(result).toHaveProperty("error");
+    expect(result).not.toHaveProperty("booked");
+  });
+
+  it("leaves no calendar event behind", async () => {
+    vi.mocked(createAppointment).mockRejectedValueOnce(new SlotTaken());
+
+    await offerThenBook();
+
+    expect(vi.mocked(createCalendarEvent)).not.toHaveBeenCalled();
+  });
+
+  it("claims the row before writing the event, which is what makes that true", async () => {
+    await offerThenBook();
+
+    const claimed = vi.mocked(createAppointment).mock.invocationCallOrder[0]!;
+    const written = vi.mocked(createCalendarEvent).mock.invocationCallOrder[0]!;
+    expect(claimed).toBeLessThan(written);
+  });
+
+  it("reserves the padded block", async () => {
+    await offerThenBook();
+
+    const input = vi.mocked(createAppointment).mock.calls[0]![0];
+    expect(input.blockStart).toBeInstanceOf(Date);
+    expect(input.blockEnd).toBeInstanceOf(Date);
+    expect(input.status).toBe("confirmed");
   });
 });
 
