@@ -1,0 +1,11 @@
+{
+  "semi": true,
+  "singleQuote": false,
+  "printWidth": 90,
+  "overrides": [
+    {
+      "files": "apps/web/**/*.{ts,tsx}",
+      "options": { "semi": false, "singleQuote": true }
+    }
+  ]
+}

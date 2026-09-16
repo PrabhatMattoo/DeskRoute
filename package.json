@@ -3,7 +3,9 @@
   "version": "1.0.19",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "concurrently --names \"api,voice,web\" --prefix-colors \"cyan,yellow,magenta\" --kill-others \"pnpm -F api dev\" \"pnpm -F voice dev\" \"pnpm -F web dev\"",
     "dev:api": "pnpm -F api dev",
@@ -12,6 +14,8 @@
     "build": "pnpm -F web build",
     "typecheck": "pnpm -r typecheck",
     "lint": "pnpm -F web lint",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "test": "vitest run --project unit",
     "test:int": "DATABASE_URL=postgresql://deskroute:deskroute@localhost:5433/deskroute_test pnpm -F @receptionist/core exec drizzle-kit migrate && vitest run --project int",
     "test:live": "vitest run --project live",
@@ -25,6 +29,7 @@
     "concurrently": "9.2.1",
     "dotenv-cli": "10.0.0",
     "drizzle-orm": "0.45.2",
+    "prettier": "3.9.6",
     "typescript": "5.9.3",
     "vitest": "4.1.10"
   }

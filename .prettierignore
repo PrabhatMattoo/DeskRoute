@@ -1,0 +1,9 @@
+node_modules
+dist
+pnpm-lock.yaml
+screenshots
+packages/core/drizzle
+*.md
+
+# A hand-aligned table of departures, where the columns carry the meaning.
+apps/web/src/index.css
