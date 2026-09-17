@@ -19,7 +19,7 @@ pnpm build           # build apps/web
 pnpm db:generate     # migration from schema changes
 pnpm db:migrate      # apply to whatever DATABASE_URL points at
 
-docker compose up -d # dev Postgres on 5432, throwaway test Postgres on 5433
+docker compose up -d # dev Postgres on DESKROUTE_DB_PORT, test Postgres on a port Docker picks
 pnpm test            # unit + agent tests (no DB, no network)
 pnpm test:int        # repository tests against the test Postgres
 pnpm test:live       # real-credential tests; costs tokens, excluded from CI
@@ -57,12 +57,20 @@ Each has a mechanism behind it, explained in ARCHITECTURE.md under Decisions.
 - **Colours come from the tokens in `index.css`**, never a hardcoded value.
 - **Dates render in the agent's timezone** via `useAgentZone()` and the `timeZone` argument in `lib/formatters.ts`.
 - **A settings row's description is one line.** If it needs two, the setting needs a better name.
-- **No centred empty states on a list page.** Say it in one muted line where the rows would be.
+- **An empty list keeps its chrome.** `EmptyState` below it for a list that has never held a row, titled by the state; one muted line for a filter that matched nothing.
 - Retokenise anything `shadcn add` writes; a contract test scans for the utilities it ships that are inert here.
 
 ## Comments
 
 Zero or one line, almost always. Two only when getting the thing wrong has a severe consequence. Nothing trivial gets a comment. Long-form reasoning goes in `ARCHITECTURE.md`, and no comment points at that file.
+
+## Documentation
+
+Every document describes the system as it stands: what is there, and why it is there. Historical detail, migration context and rejected alternatives stay out. A negative statement earns its place only where the absence is itself a current property. Commit messages are the record of a change and carry history freely.
+
+## Prompts
+
+Everything a model reads is written for the most literal reader. A tool description states that tool's contract in the third person; a field description states meaning, bounds, format and one example; a result or an error states what happened and the next move. Prefer the noun to a demonstrative, a measurable bound to a vague one, and the instruction to follow to the one to avoid. The prompt may name a tool to say when to reach for it.
 
 ## Commits
 

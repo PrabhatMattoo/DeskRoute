@@ -147,7 +147,7 @@ export type GenerateSlotsInput = {
 
 /**
  * The grid walks appointment starts, so quoted times land on the quarter hour.
- * Extra time is dropped rather than moved at the edges of an opening period.
+ * Extra time is dropped at the edges of an opening period.
  */
 export function generateCandidateSlots({
   hours,

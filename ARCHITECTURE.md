@@ -62,7 +62,7 @@ Two run in production, plus the static dashboard.
 
 Each package declares what it reads, and every schema reads `process.env` and nothing else. `packages/core` owns `DATABASE_URL`, `LIVEKIT_*`, `CLERK_SECRET_KEY` and `R2_*`. `apps/api` adds `PORT`, `DASHBOARD_ORIGINS` and `CLERK_PUBLISHABLE_KEY`. `apps/voice` adds `LLM_*` and `OPENROUTER_*`.
 
-`parseEnv` in `packages/core/src/env.ts` drops blank values before parsing, so `FOO=` falls through to `.optional()` and `.default()` rather than failing. It throws rather than exiting, because a module-level exit kills anything importing it transitively, the test runner included.
+`parseEnv` in `packages/core/src/env.ts` drops blank values before parsing, so `FOO=` falls through to `.optional()` and `.default()`. It throws, because a module-level exit kills anything importing it transitively, the test runner included.
 
 `.env` files are a development convenience, loaded by each app's dev script with `--env-file-if-exists` from its own directory. Nothing in production reads a file: Docker Compose injects `env_file:` into the container and the process reads `process.env`. Each package ships an `.env.example` beside it.
 
@@ -72,7 +72,7 @@ Each package declares what it reads, and every schema reads `process.env` and no
 
 Postgres 17, Drizzle, migrations in `packages/core/drizzle`. `docker-compose.yml` runs a persistent database on `DESKROUTE_DB_PORT`, default 5432, and a tmpfs one for tests on a port Docker picks.
 
-**`agents`** is the configuration row. `business_name` is the shop and `persona_name` is what the receptionist calls itself; those were one field and disagreed. `greeting`, `farewell`, `fallback`, `min_notice_minutes`, `max_advance_days`, `checklist_dismissed` and `hours_seen` are flat columns. `business_hours` stays `jsonb` because it is read whole, never queried into, and carries a weekly pattern of multiple intervals per day plus date exceptions that replace the pattern outright. Its times are local wall clock read against `timezone`, never UTC, so "we open at 9" survives daylight saving.
+**`agents`** is the configuration row. `business_name` is the shop and `persona_name` is what the receptionist calls itself, so a rename of either leaves the other alone. `greeting`, `farewell`, `fallback`, `min_notice_minutes`, `max_advance_days`, `checklist_dismissed` and `hours_seen` are flat columns. `business_hours` stays `jsonb` because it is read whole, never queried into, and carries a weekly pattern of multiple intervals per day plus date exceptions that replace the pattern outright. Its times are local wall clock read against `timezone`, never UTC, so "we open at 9" survives daylight saving.
 
 **`phone_numbers`** is its own table so a number is added and an old one removed without writing to the agent row. `e164` is globally unique: a number reaches exactly one agent.
 
@@ -104,11 +104,11 @@ ctx.connect() -> waitForParticipant() -> resolveAgent(trunkPhone, or agentId for
 
 SIP attributes: `sip.phoneNumber` is who is calling, `sip.trunkPhoneNumber` is the number they dialled.
 
-Database writes and recording are deferred until after the greeting plays, so the caller hears audio without waiting on a round trip. That leaves a window where the agent is live and the `calls` row does not exist, so anything writing a foreign key to it awaits `callRowReady` rather than moving the insert onto the path to first audio.
+Database writes and recording are deferred until after the greeting plays, so the caller hears audio without waiting on a round trip. That leaves a window where the agent is live and the `calls` row does not exist, so anything writing a foreign key to it awaits `callRowReady`, leaving the path to first audio clear.
 
 Agent resolution is cached in `session/resolve-agent.ts` with a five-minute TTL and a 500-entry LRU. The agent, its services and its knowledge expire together, since all three go into one prompt.
 
-**Browser test sessions** carry `testSession: "true"` and `agentId` in participant attributes. The worker resolves by id and skips recording, the `calls` row and the `callers` row. It does not skip booking: `checkAvailability` and `bookAppointment` write a real appointment and a real calendar event. Test rooms use explicit agent dispatch through the join token's `RoomConfiguration`, not the SIP dispatch rule.
+**Browser test sessions** carry `testSession: "true"` and `agentId` in participant attributes. The worker resolves by id and skips recording, the `calls` row and the `callers` row. Booking runs in full: `checkAvailability` and `bookAppointment` write a real appointment and a real calendar event. Test rooms reach the agent through explicit dispatch in the join token's `RoomConfiguration`.
 
 ## The receptionist
 
@@ -120,7 +120,7 @@ Everything above the Caller heading is identical across calls and forms a cachea
 
 The knowledge base is inlined into the prompt at call start, capped at 300 items by `KNOWLEDGE_PROMPT_LIMIT`. There is no retrieval tool.
 
-**The catalogue reaches the model as a schema.** `checkAvailability` types its `service` parameter as `z.enum` over the agent's own service names, so the model chooses from the list instead of passing the caller's words through for the backend to match. A business listing no services receives neither booking tool, because a tool the model never holds is a tool it cannot reach for.
+**The catalogue reaches the model as a schema.** `checkAvailability` types its `service` parameter as `z.enum` over the agent's own service names, so the model chooses from the list at the moment it reads the caller. A business listing no services receives neither booking tool, because a tool the model never holds is a tool it cannot reach for.
 
 `bookAppointment` and `createEscalation` both take `callerName`, so asking is enforced by the schema and only at those two moments. Both go through one `resolveCallerName`: a name given now beats one already stored, it is written to `callers.name` when a row exists, and it falls back to the stored name.
 
@@ -131,7 +131,7 @@ The knowledge base is inlined into the prompt at call start, capped at 300 items
 `packages/core/src/domain/scheduling.ts` is pure: no database, no network, and `now` is passed in.
 
 - `zonedWallClockToUtc` corrects the offset in two passes, since the offset depends on the instant being solved for. No date dependency: Temporal is not stable in Node 22.
-- `generateCandidateSlots` walks a 15-minute grid of **appointment** starts, so quoted times land on the quarter hour rather than wherever padding pushed them. Each interval carries its own edges, so a lunch split has four rather than two.
+- `generateCandidateSlots` walks a 15-minute grid of **appointment** starts, so quoted times land on the quarter hour. Each interval carries its own edges, so a lunch split carries four.
 - `filterByBusy` compares the **padded block** against freeBusy, so cleanup after the previous job counts as a conflict.
 - `serviceByName` reads a catalogue name back to its service, ignoring case and surrounding space. It answers null for a name the catalogue leaves out, which a provider that leaves the enum unenforced can still produce.
 
@@ -171,7 +171,7 @@ Clerk's redirect environment variables are unused; `signInUrl`, `signUpUrl` and 
 Four laws, all enforced by `apps/web/src/tests/design-tokens.test.ts`:
 
 1. **Surfaces, borders and controls are additive.** Surfaces and lines travel toward the ink, controls toward white and back when pointed at.
-2. **Ink is proportional.** A mix toward the dark pole rather than a fixed distance, so text barely moves when the surface does.
+2. **Ink is proportional.** A mix toward the dark pole, so text barely moves when the surface does.
 3. **Chroma re-anchors.** Every ground-dependent chroma builds from `--ground-c`, never pinned flat.
 4. **Chroma is proportional to lightness**, `dc = -0.145 x dL` capped at 1.20.
 
@@ -202,17 +202,17 @@ Host Grotesk, six sizes. `--text-*` is cleared first so Tailwind's scale cannot 
 
 ### Widths
 
-The rule is naming versus measuring, not a ban on pixels: `--container-page: 960px` is itself a pixel value. Tokens live once in `index.css` where each carries a name, and a call site says `max-w-page`. A component may own its own width in one place, which the drawer does. `--container-narrow` at 640px is one column of form read once: onboarding and the escalation queue.
+The rule is naming versus measuring: `--container-page: 960px` is itself a pixel value. Tokens live once in `index.css` where each carries a name, and a call site says `max-w-page`. A component may own its own width in one place, which the drawer does. `--container-narrow` at 640px is one column of form read once: onboarding and the escalation queue.
 
-A field's width is a claim about the answer: `w-field-xs` a number, `sm` a time, `md` a name, `lg` a line of prose.
+A field's width is a claim about the answer: `w-field-sm` a time or a short code, `md` a name or a chosen option, `lg` a line of prose or a search. A control whose width follows its own content owns it, as `NumberField` does from the length of its unit.
 
 ### Settings
 
-Every setting is one row: title and a one-line description on the left, the control on the right, rows stacked in a card. `SettingsList.tsx` holds `Section`, `Row`, `ActionRow`, `OpenRow` and `SubRow`. A row that needs editing opens in place, and the button that opened it closes it.
+Every setting is one row: title and a one-line description on the left, the control beside them, rows stacked in a card. A control too wide to sit beside its label is `stacked` and sits under it. `SettingsList.tsx` holds `Section`, `Row` and `SubRow`; `Row` and `SubRow` read one layout and one label between them, so a field behaves the same in a card and in a drawer. A row that needs editing opens a drawer, which carries no rule between its fields because the panel edge is the boundary.
 
-Extra time on a service is opt-in, and is one row rather than a list: the schema is two integer columns, so an "add another" would model something unstorable.
+Extra time on a service is opt-in, and is one row: the schema is two integer columns, which is what one row holds.
 
-Every duration and count is `NumberField`, digits only with the unit painted inside the box. Minutes is the unit you edit in; `formatMinutes` is the unit you read in.
+Every duration and count is `NumberField`, digits only with the unit painted inside the box, and the box measures its unit so a short one leaves no dead space. `UNIT` in `lib/formatters.ts` holds the word, so `formatMinutes` and the field it is typed into say the same thing.
 
 One `SaveBar` per panel, at the foot, naming what is unsaved. The recording switch is the exception, being a single independently-valid boolean that commits when it moves.
 
@@ -224,7 +224,7 @@ The checklist has three states. With no calls it is the page. Once calls arrive 
 
 **Escalations** at `/escalations` is the whole list filtered by status; `/escalations/queue` is one question at a time. **Appointments** is a week strip that filters to a day. **Knowledge** is search over question and answer pairs. **Onboarding** is one page: business name, kind of business, timezone, then a number. **Connections** holds the phone number and the calendar, each in a drawer. The phone number has no disconnect, because releasing it is irreversible.
 
-There are no centred empty states on a list page. A page with a heading, filters and a table header already explains itself, so one muted line sits where the rows would be. `layout/EmptyState.tsx` survives for genuinely blank pages: the escalation queue and 404.
+A list keeps its search and filters once loading ends, so an empty page holds the shape it will have with rows in it. `layout/EmptyState.tsx` fills the space below for a list that has never held a row, titled by the state it is in, since the heading already names the page. A filter matching nothing gets one muted line where the rows would be.
 
 ### Registry components
 
@@ -253,7 +253,7 @@ node --env-file=apps/api/.env seed.mjs          # add the dummy rows
 node --env-file=apps/api/.env seed.mjs --clear  # take them away
 ```
 
-It seeds onto an agent created by signing up and never invents one, so the number on the row was really purchased. Rows are stamped in a free-text column and `--clear` removes exactly those; a service typed by hand or a genuine call is never caught. Callers are matched on the fixed 555 numbers it inserts, since a phone number has nowhere to carry a stamp. It uses raw SQL through `pg` rather than Drizzle, so it survives schema helpers moving.
+It seeds onto an agent created by signing up and never invents one, so the number on the row was really purchased. Rows are stamped in a free-text column and `--clear` removes exactly those; a service typed by hand or a genuine call is never caught. Callers are matched on the fixed 555 numbers it inserts, since a phone number has nowhere to carry a stamp. It uses raw SQL through `pg`, so it survives schema helpers moving.
 
 Two things to know. Seeding skips onboarding, so onboarding is exercised only by hand. And the after-hours flag on a seeded call must not key off the same counter as its outcome, or every booked call lands out of hours, which ruins the one figure the seed exists to make believable.
 
@@ -279,9 +279,9 @@ Preemptive generation is on: the LLM starts before end-of-turn is confirmed, whi
 
 ### Telephony noise cancellation is SIP-only
 
-`TelephonyBackgroundVoiceCancellation()` is tuned for 8kHz phone audio and runs before VAD, STT and turn detection, so it is a turn-detection accuracy fix rather than an audio nicety. Browser test sessions come from a laptop microphone at full bandwidth and must not get it.
+`TelephonyBackgroundVoiceCancellation()` is tuned for 8kHz phone audio and runs before VAD, STT and turn detection, so it is a turn-detection accuracy fix. Browser test sessions come from a laptop microphone at full bandwidth and must not get it.
 
-### Extra time is dropped, not moved, at the edges of an opening period
+### Extra time is dropped at the edges of an opening period
 
 Before-time protects the appointment before this one, and the first of the day has nothing behind it. So a 45-minute service with 15 minutes of setup is offered 9:00 in a shop opening at 9:00, with the calendar holding from 9:00, and never 9:00 with a hold from 8:45, because nobody is there at 8:45. Closing mirrors it: the appointment may end exactly at close, and the clearing up is not held on a calendar the business has shut. Requiring the whole padded block to fit inside the period costs a 9-to-5 shop both its 9:00 and its 4:50.
 
@@ -335,7 +335,7 @@ Measured against the live LiveKit API on 2026-09-03:
 
 A partial code is a caller mistake the carrier reports as an opaque failure, so `searchPhoneNumbers` checks the length itself. A well-formed code with nothing free is an empty list, which is its own case.
 
-### Model latency is measured, not assumed
+### Model latency is measured
 
 Time to first token through LiveKit Inference, three samples from India: `openai/gpt-4o-mini` 935/1616/822ms, `google/gemini-3.5-flash` 1628/1859/1268ms. `MetricsCollected` is wired, so `grep '\[metrics\]'` in the worker log gives real p50 and p95 per call. The greeting is unaffected by model choice, since `session.say()` sends a fixed string straight to TTS.
 

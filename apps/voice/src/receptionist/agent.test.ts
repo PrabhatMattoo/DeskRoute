@@ -36,8 +36,7 @@ describe("ReceptionistAgent", () => {
   });
 
   it("greets a known returning caller by name", () => {
-    // PLAN.md 1.8.4: callers.name existed but nothing ever wrote it, so this
-    // branch was unreachable dead code. rememberCallerName now populates it.
+    // rememberCallerName writes callers.name, which is what this branch reads.
     const deps = makeAgentDeps({
       caller: { id: "c1", name: "Sarah" } as never,
     });

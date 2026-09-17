@@ -22,8 +22,8 @@ describe("resolveCallerPhone", () => {
   });
 
   it("never conflates two withheld callers into one identity", () => {
-    // The bug in one line: both of these were "unknown", and "unknown" is a
-    // unique key.
+    // `callers` is unique on (agent_id, phone_number), so a shared placeholder
+    // would collapse every withheld caller into one row.
     const a = resolveCallerPhone({}, false);
     const b = resolveCallerPhone({}, false);
     expect(a).toBeNull();

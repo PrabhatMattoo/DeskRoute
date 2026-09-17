@@ -57,8 +57,8 @@ export async function listCalls(agentId: string, limit = 50, offset = 0) {
       id: calls.id,
       callerId: calls.callerId,
       callerPhone: calls.callerPhone,
-      // `callerId` was selected and never read. A caller with a name on file
-      // should be shown by it, not by a number the owner has to recognise.
+      // A caller with a name on file is shown by it, sparing the owner a number
+      // they would have to recognise.
       callerName: callers.name,
       startedAt: calls.startedAt,
       endedAt: calls.endedAt,

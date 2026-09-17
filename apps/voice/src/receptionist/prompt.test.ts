@@ -140,8 +140,7 @@ describe("buildSystemPrompt", () => {
     });
 
     it("says Closed for a day with no opening periods", () => {
-      // "Are you open Saturday?" was an escalation every time before hours
-      // existed — the agent had nothing to answer from.
+      // "Are you open Saturday?" is answered from the prompt, with no escalation.
       expect(buildSystemPrompt(makeAgentDeps())).toContain("Sunday: Closed");
     });
 

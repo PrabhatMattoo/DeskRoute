@@ -21,9 +21,8 @@ import { PanelLeftIcon } from 'lucide-react'
 
 const SIDEBAR_COOKIE_NAME = 'sidebar_state'
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
-// 244px: the rail Linear runs, and what the DeskRoute mocks are drawn to.
-/* The rail's width is a measure like any other and lives with the rest of them
-   in `index.css`, rather than being stated once here and once there. */
+/* 244px, the rail the mocks are drawn to. The width is a measure like any other,
+   so it lives in `index.css` where every call site reads the one value. */
 const SIDEBAR_WIDTH = 'var(--container-sidebar)'
 const SIDEBAR_WIDTH_MOBILE = '18rem'
 const SIDEBAR_WIDTH_ICON = '3rem'

@@ -21,7 +21,7 @@ Self-hosted and open source. One deployment runs one or more agents.
 - **Call recordings** - recorded calls get audio alongside the full transcript and AI-generated summary; transcript and summary are kept either way
 - **In-browser agent test** - talk to your agent live from the dashboard, no phone call. Nothing is recorded and no call is logged, but booking is real: a test session writes a genuine appointment and calendar event
 - **Admin dashboard** - the call log, a queue for answering escalations, a day-by-day view of what is booked, the knowledge base, and settings
-- **More than one agent per install** - every table is agent-scoped, so a second business, a second location or a second line is another row rather than another deployment
+- **More than one agent per install** - every table is agent-scoped, so a second business, a second location or a second line is another row
 
 
 ## How It Works
@@ -176,7 +176,7 @@ pnpm typecheck         # tsc --noEmit across every package
 
 `test:live` is the only suite that runs against real credentials. It reads the development database to find an agent with a connected calendar, gets that agent's Google token the same way a live call does, and books and cancels one clearly-labelled event to prove the padded block is actually reserved — because if an event covers only the appointment and not its buffers, freeBusy reports the setup and cleanup free and the next caller is offered them. It writes nothing to the database, and skips with a reason if no calendar is connected. Point it at a specific agent with `LIVE_AGENT_ID`.
 
-The web suite is the colour contract rather than component tests. One surface is given, the stage, and every other colour is a departure from it, so the suite asserts *relationships* rather than values: the anchor holds still as contrast moves, surfaces and controls travel in opposite directions, ink mixes toward the pole instead of stepping a fixed distance, chroma moves in proportion to lightness, no line is ever lighter than what it edges, every overlay carries an edge, nothing anywhere is smaller than 14px, and every pair clears its floor **on the ground it actually lands on**.
+The web suite is the colour contract. One surface is given, the stage, and every other colour is a departure from it, so the suite asserts *relationships*: the anchor holds still as contrast moves, surfaces and controls travel in opposite directions, ink mixes toward the pole, chroma moves in proportion to lightness, no line is ever lighter than what it edges, every overlay carries an edge, nothing anywhere is smaller than 14px, and every pair clears its floor **on the ground it actually lands on**.
 
 Break a law in `index.css` and the suite goes red. That is the point of it.
 
