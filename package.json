@@ -17,7 +17,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "vitest run --project unit",
-    "test:int": "DATABASE_URL=postgresql://deskroute:deskroute@localhost:5433/deskroute_test pnpm -F @receptionist/core exec drizzle-kit migrate && vitest run --project int",
+    "test:int": "DATABASE_URL=$(node scripts/test-db-url.mjs) pnpm -F @receptionist/core exec drizzle-kit migrate && vitest run --project int",
     "test:live": "vitest run --project live",
     "test:web": "pnpm -F web test",
     "db:generate": "pnpm -F @receptionist/core exec dotenv -e .env -- drizzle-kit generate",

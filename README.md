@@ -166,7 +166,7 @@ The chain runs against any empty Postgres, and `packages/core/tests/migrations.i
 ### Tests
 
 ```bash
-docker compose up -d   # dev Postgres on 5432, throwaway test Postgres on 5433
+docker compose up -d   # dev Postgres on 5432, throwaway test Postgres on a port Docker picks
 pnpm test              # unit + agent tests (no DB, no network)
 pnpm test:int          # repository tests against the test Postgres
 pnpm test:live         # real Google Calendar; needs apps/voice/.env

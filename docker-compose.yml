@@ -9,7 +9,7 @@ services:
       POSTGRES_PASSWORD: deskroute
       POSTGRES_DB: deskroute
     ports:
-      - "5432:5432"
+      - "${DESKROUTE_DB_PORT:-5432}:5432"
     volumes:
       - deskroute-db-data:/var/lib/postgresql/data
     healthcheck:
@@ -26,7 +26,7 @@ services:
       POSTGRES_PASSWORD: deskroute
       POSTGRES_DB: deskroute_test
     ports:
-      - "5433:5432"
+      - "5432"
     tmpfs:
       - /var/lib/postgresql/data
     healthcheck:

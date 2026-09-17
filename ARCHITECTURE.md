@@ -68,7 +68,7 @@ Each package declares what it reads, and every schema reads `process.env` and no
 
 ## Database
 
-Postgres 17, Drizzle, migrations in `packages/core/drizzle`. `docker-compose.yml` runs a persistent database on 5432 and a tmpfs one on 5433 for tests.
+Postgres 17, Drizzle, migrations in `packages/core/drizzle`. `docker-compose.yml` runs a persistent database on `DESKROUTE_DB_PORT`, default 5432, and a tmpfs one for tests on a port Docker picks.
 
 **`agents`** is the configuration row. `business_name` is the shop and `persona_name` is what the receptionist calls itself; those were one field and disagreed. `greeting`, `farewell`, `fallback`, `min_notice_minutes`, `max_advance_days`, `checklist_dismissed` and `hours_seen` are flat columns. `business_hours` stays `jsonb` because it is read whole, never queried into, and carries a weekly pattern of multiple intervals per day plus date exceptions that replace the pattern outright. Its times are local wall clock read against `timezone`, never UTC, so "we open at 9" survives daylight saving.
 
@@ -230,7 +230,7 @@ There are no centred empty states on a list page. A page with a heading, filters
 
 Three vitest projects split by filename, all driven by the root `vitest.config.ts`: `*.test.ts` needs nothing, `*.int.test.ts` needs the Docker Postgres, `*.live.test.ts` needs real credentials and spends tokens.
 
-Test environment lives in `vitest.config.ts` rather than a `.env.test`, which `.gitignore` would swallow. `test:int` pins its `DATABASE_URL` inline, so a migration there cannot reach the development database.
+Test environment lives in `vitest.config.ts`, where `.gitignore` leaves it tracked. `scripts/test-db-url.mjs` asks Docker which host port the test database took, and both `vitest.config.ts` and the `test:int` migration read it from there, so the suite names the test container whatever port is free and a migration reaches only that container.
 
 `packages/core/tests/factories.ts` builds database fixtures for integration tests. `apps/voice/src/receptionist/fixtures.ts` builds pure fixtures for unit tests and touches no database.
 

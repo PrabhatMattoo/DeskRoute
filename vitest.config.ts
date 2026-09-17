@@ -1,4 +1,5 @@
 import { defineConfig } from "vitest/config";
+import { testDatabaseUrl } from "./scripts/test-db-url.mjs";
 
 /**
  * Split by filename: *.test.ts needs nothing, *.int.test.ts needs the Docker
@@ -6,7 +7,7 @@ import { defineConfig } from "vitest/config";
  */
 const testEnv = {
   PORT: "8080",
-  DATABASE_URL: "postgresql://deskroute:deskroute@localhost:5433/deskroute_test",
+  DATABASE_URL: testDatabaseUrl(),
   LIVEKIT_URL: "wss://test.livekit.cloud",
   LIVEKIT_API_KEY: "test-key",
   LIVEKIT_API_SECRET: "test-secret",
@@ -31,7 +32,10 @@ export default defineConfig({
         test: {
           ...base,
           name: "unit",
-          include: roots.flatMap((r) => [`${r}/src/**/*.test.ts`, `${r}/tests/**/*.test.ts`]),
+          include: roots.flatMap((r) => [
+            `${r}/src/**/*.test.ts`,
+            `${r}/tests/**/*.test.ts`,
+          ]),
           exclude: roots.flatMap((r) => [
             `${r}/**/*.int.test.ts`,
             `${r}/**/*.live.test.ts`,
