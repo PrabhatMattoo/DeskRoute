@@ -51,7 +51,7 @@ Each has a mechanism behind it, explained in ARCHITECTURE.md under Decisions.
 
 ## Frontend
 
-- **A call site names a width; it does not measure one.** Use `w-field-xs/sm/md/lg` for fields and `max-w-page` / `max-w-form` / `max-w-narrow` for pages. `design-tokens.test.ts` fails on a pixel width under `features/` or `layout/`.
+- **A call site names a width; it does not measure one.** `w-field-sm` a time or a short code, `md` a name or a chosen option, `lg` a line of prose or a search; `max-w-page` / `max-w-form` / `max-w-narrow` for pages. A control that sizes to its own content owns that width itself, as `NumberField` does. `design-tokens.test.ts` fails on a pixel width under `features/` or `layout/`.
 - **Nothing below 14px**, including arbitrary values like `text-[0.8rem]`.
 - **A duration or a count is a `NumberField`.** Digits only, unit painted inside the box.
 - **Colours come from the tokens in `index.css`**, never a hardcoded value.

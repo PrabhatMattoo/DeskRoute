@@ -1,4 +1,5 @@
 import { AccessToken } from "livekit-server-sdk";
+import type { AvailableNumber } from "@receptionist/shared";
 import { env } from "../env.js";
 
 const LIVEKIT_HTTP = env.LIVEKIT_URL.replace("wss://", "https://").replace(
@@ -28,13 +29,6 @@ async function twirp(method: string, body: object): Promise<Record<string, unkno
     );
   }
   return res.json();
-}
-
-export interface AvailableNumber {
-  id: string;
-  e164_format: string;
-  locality: string;
-  region: string;
 }
 
 /** Three digits, or nothing. Anything else is not a US area code. */

@@ -38,7 +38,7 @@ Self-hosted and open source. One deployment runs one or more agents.
 
 ## Versioning
 
-`major.minor.patch`, tracked in the root `package.json`. Currently **1.0.21**.
+`major.minor.patch`, tracked in the root `package.json`. Currently **1.0.22**.
 
 ## Screenshots
 
@@ -105,7 +105,7 @@ cd DeskRoute
 pnpm install
 ```
 
-A pnpm workspace. `apps/api`, `apps/voice` and `apps/web` are the three processes; `packages/core` holds the database, repositories, providers and domain logic they share; `packages/shared` holds the types the browser needs too.
+A pnpm workspace. `apps/api`, `apps/voice` and `apps/web` are the three processes; `packages/core` holds the database, repositories, providers and domain logic they share; `packages/shared` holds the zod schemas every package validates and types against, browser included.
 
 ### Environment
 

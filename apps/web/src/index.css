@@ -413,11 +413,9 @@
      scan. */
   --container-narrow: 640px;
   --container-sidebar: 244px;
-  --container-field-2xs: 64px;  /* minutes, a count */
-  --container-field-xs: 88px;   /* a price */
-  --container-field-sm: 128px;
-  --container-field-md: 208px;
-  --container-field-lg: 288px;
+  --container-field-sm: 128px;  /* a time, or a short code */
+  --container-field-md: 208px;  /* a name, or a chosen option */
+  --container-field-lg: 288px;  /* a line of prose, or a search */
 
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --duration-fast: 120ms;

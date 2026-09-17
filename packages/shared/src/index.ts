@@ -1,89 +1,12 @@
+import type { AgentProfile, BookingPolicy, BusinessHours, Service } from "./schemas.js";
+
+export * from "./schemas.js";
+
 // Domain enums / unions
 
 export type CallOutcome = "answered" | "booked" | "escalated" | "abandoned" | "error";
 export type EscalationStatus = "pending" | "resolved";
 export type AppointmentStatus = "requested" | "confirmed" | "cancelled";
-
-// Domain value objects
-
-/** The buffers widen the calendar block, not the appointment the caller hears. */
-export type Service = {
-  id: string;
-  name: string;
-  price: string;
-  description?: string;
-  durationMinutes: number;
-  bufferBeforeMinutes: number;
-  bufferAfterMinutes: number;
-  /** Plural from day one, empty for everyone today. */
-  requiredResources: string[];
-};
-
-/** A service before it exists — what the create form and onboarding send. */
-export type ServiceDraft = Omit<Service, "id">;
-
-export type Weekday = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
-
-export const WEEKDAYS: readonly Weekday[] = [
-  "mon",
-  "tue",
-  "wed",
-  "thu",
-  "fri",
-  "sat",
-  "sun",
-];
-
-/** Local wall clock "HH:MM", never UTC, so "we open at 9" survives daylight saving. */
-export type TimeInterval = { start: string; end: string };
-
-/** Replaces the weekly pattern for one date. Empty `intervals` means shut all day. */
-export type HoursException = {
-  /** "YYYY-MM-DD", read in the business's timezone. */
-  date: string;
-  intervals: TimeInterval[];
-  /** Shown in the dashboard only, e.g. "Christmas Day". */
-  label?: string;
-};
-
-/** Several intervals per day, because a lunch closure is two and not one. */
-export type BusinessHours = {
-  weekly: Record<Weekday, TimeInterval[]>;
-  exceptions: HoursException[];
-};
-
-/** `minNoticeMinutes` covers the person, not the calendar; padding covers the calendar. */
-export type BookingPolicy = {
-  minNoticeMinutes: number;
-  maxAdvanceDays: number;
-};
-
-export const DEFAULT_BOOKING_POLICY: BookingPolicy = {
-  minNoticeMinutes: 30,
-  maxAdvanceDays: 60,
-};
-
-/** Mon–Fri, 9 to 5. A starting point every business will edit. */
-export const DEFAULT_BUSINESS_HOURS: BusinessHours = {
-  weekly: {
-    mon: [{ start: "09:00", end: "17:00" }],
-    tue: [{ start: "09:00", end: "17:00" }],
-    wed: [{ start: "09:00", end: "17:00" }],
-    thu: [{ start: "09:00", end: "17:00" }],
-    fri: [{ start: "09:00", end: "17:00" }],
-    sat: [],
-    sun: [],
-  },
-  exceptions: [],
-};
-
-/** The phrases an owner controls. There is no hold phrase: speech is a queue. */
-export type AgentProfile = {
-  name: string;
-  greeting: string;
-  farewell: string;
-  fallback: string;
-};
 
 /**
  * Plays before the owner's greeting and is not editable. California AB 2905 and
@@ -191,25 +114,6 @@ export interface AppointmentItem {
   externalEventId: string | null;
   createdAt: string;
 }
-
-export interface AvailableNumber {
-  id: string;
-  e164_format: string;
-  locality: string;
-  region: string;
-}
-
-/** Only what cannot be derived: hours are valid from creation, so nothing else says
- *  whether they have been looked at. */
-export interface AgentSetup {
-  checklistDismissed: boolean;
-  hoursSeen: boolean;
-}
-
-export const DEFAULT_AGENT_SETUP: AgentSetup = {
-  checklistDismissed: false,
-  hoursSeen: false,
-};
 
 export interface DashboardMetrics {
   totalCalls: number;

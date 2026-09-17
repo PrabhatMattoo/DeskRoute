@@ -59,12 +59,24 @@ export function formatDuration(startedAt: string, endedAt: string | null): strin
   return m === 0 ? `${s}s` : `${m}m ${s}s`
 }
 
+/**
+ * The word a duration is written in, wherever it is read or edited. Abbreviated
+ * where English abbreviates, spelled out where it does not.
+ */
+export const UNIT = {
+  minutes: 'min',
+  hours: 'hr',
+  days: 'days',
+} as const
+
+export type Unit = (typeof UNIT)[keyof typeof UNIT]
+
 /** "45 min", "2 hr", "1 hr 30 min". */
 export function formatMinutes(minutes: number): string {
-  if (minutes < 60) return `${minutes} min`
+  if (minutes < 60) return `${minutes} ${UNIT.minutes}`
   const h = Math.floor(minutes / 60)
   const m = minutes % 60
-  return m === 0 ? `${h} hr` : `${h} hr ${m} min`
+  return m === 0 ? `${h} ${UNIT.hours}` : `${h} ${UNIT.hours} ${m} ${UNIT.minutes}`
 }
 
 /** Name, then number, then "Unknown caller". "No caller ID" is a different fact

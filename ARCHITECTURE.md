@@ -36,13 +36,15 @@ apps/api         Hono server, one module per resource under src/modules
 apps/voice       LiveKit worker
 apps/web         Admin dashboard
 packages/core    db, repositories, providers, domain, env
-packages/shared  Domain types and constants, also consumed by the browser
+packages/shared  Domain schemas, the types they infer, and constants, also consumed by the browser
 tests/           The three vitest setup files
 ```
 
 `packages/core` splits by what a thing talks to. `db/` holds the schema and the connection. `repositories/` wrap Drizzle and are the only code that reads or writes Postgres. `providers/` reach outward to Google Calendar, LiveKit and R2. `domain/` is pure logic with no I/O, so it is testable without booting anything.
 
 `apps/voice/src` splits by lifetime. `receptionist/` is what LiveKit dispatches under the name `receptionist`: the `Agent` subclass, its instructions, its tools, the turn rule and the greeting. `session/` is one `AgentSession`: which agent answers, how the speech pipeline is wired, who is calling, and what the call leaves behind.
+
+`packages/shared/src/schemas.ts` declares each domain shape once as a zod schema. `z.infer` gives the type every package reads, `bookingPolicySchema.parse({})` gives the defaults, and `apps/api` validates request bodies against the same object.
 
 Cross-package imports use the package name with a `.js` specifier, for example `@receptionist/core/repositories/calls.js`. `@receptionist/core` publishes `./*.js` mapping to `./src/*.ts` and `./tests/*.js` mapping to `./tests/*.ts`. There is no build step: TypeScript source is consumed directly through the `exports` field.
 

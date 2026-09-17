@@ -7,7 +7,8 @@ import {
   deleteService,
   DuplicateServiceName,
 } from "@receptionist/core/repositories/services.js";
-import { serviceDraftSchema, serviceUpdateSchema } from "../../schemas.js";
+import { serviceDraftSchema } from "@receptionist/shared";
+import { serviceUpdateSchema } from "../../schemas.js";
 
 export const services = new Hono<AppEnv>()
   .get("/", async (c) => c.json(await listServices(c.get("agentId"))))
