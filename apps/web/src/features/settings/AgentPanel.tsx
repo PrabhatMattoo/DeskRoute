@@ -22,7 +22,7 @@ const PHRASES: Phrase[] = [
   {
     field: 'greeting',
     title: 'Greeting',
-    description: 'Your agent opens every call with this.',
+    description: 'Your agent opens every call with the greeting.',
   },
   {
     field: 'farewell',
@@ -32,7 +32,7 @@ const PHRASES: Phrase[] = [
   {
     field: 'fallback',
     title: 'When your agent cannot answer',
-    description: 'Said before the question is passed to you in Escalations.',
+    description: 'Said to the caller before the question reaches Escalations.',
   },
 ]
 
@@ -91,7 +91,7 @@ export function AgentPanel({ settings }: { settings: AppSettings }) {
     <div>
       <Section
         title="Before your greeting"
-        lede="Your agent says this on every call, and the law does not let you edit it or turn it off."
+        lede="Your agent says the disclosure on every call. The law fixes the wording."
       >
         <li className="p-4">
           <p className="leading-relaxed text-foreground">&ldquo;{disclosure}&rdquo;</p>
@@ -101,12 +101,12 @@ export function AgentPanel({ settings }: { settings: AppSettings }) {
       <Section title="Your agent">
         <Row
           title="Agent name"
-          description="What your agent calls itself when a caller asks who it is."
+          description="The name your agent gives when a caller asks who is speaking."
           htmlFor="agent-name"
         >
           <Input
             id="agent-name"
-            className="w-field-sm"
+            className="w-field-md"
             value={form.name}
             onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
           />
@@ -116,7 +116,7 @@ export function AgentPanel({ settings }: { settings: AppSettings }) {
           description={
             settings.business.storageConfigured
               ? 'Keeps the audio, and changes what your agent says at the start of a call.'
-              : 'Set the R2_* variables to store audio. Until then nothing is recorded.'
+              : 'Your server stores no audio yet, so nothing is recorded.'
           }
         >
           <Switch
@@ -133,7 +133,7 @@ export function AgentPanel({ settings }: { settings: AppSettings }) {
 
       <Section
         title="What your agent says"
-        lede="Write them the way you would say them out loud."
+        lede="Write each phrase the way you would say it out loud."
       >
         {PHRASES.map(({ field, title, description }) => (
           <Row

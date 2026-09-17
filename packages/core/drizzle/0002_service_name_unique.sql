@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "services_agent_name_idx" ON "services" USING btree ("agent_id",lower(trim("name")));

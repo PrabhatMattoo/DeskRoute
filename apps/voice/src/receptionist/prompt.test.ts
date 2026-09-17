@@ -200,6 +200,14 @@ describe("buildSystemPrompt", () => {
       expect(prompt).toContain("Haircut: $45 (30 minutes)");
       expect(prompt).toContain("Colour: $120 (120 minutes)");
     });
+
+    it("says a business listing no services takes no bookings", () => {
+      // The booking tools are withheld from the same agent, so the two agree.
+      const prompt = buildSystemPrompt(
+        makeAgentDeps({ services: [], calendarExternalId: "cal-1" }),
+      );
+      expect(prompt).toContain("lists no services");
+    });
   });
 
   describe("logging", () => {

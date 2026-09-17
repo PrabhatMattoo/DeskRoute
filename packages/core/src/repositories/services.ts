@@ -2,8 +2,30 @@ import { and, asc, eq, max } from "drizzle-orm";
 import type { Service, ServiceDraft } from "@receptionist/shared";
 import { db } from "../db/client.js";
 import { services } from "../db/schema.js";
+import { UNIQUE_VIOLATION, violates } from "../db/pg-error.js";
 
 export type ServiceRow = typeof services.$inferSelect;
+
+/** The agent names a service to book it, so two rows cannot answer to one name. */
+export class DuplicateServiceName extends Error {
+  constructor(readonly serviceName: string) {
+    super(`This business already offers a service called "${serviceName}".`);
+    this.name = "DuplicateServiceName";
+  }
+}
+
+const NAME_CONSTRAINT = "services_agent_name_idx";
+
+async function named<T>(serviceName: string, write: () => Promise<T>): Promise<T> {
+  try {
+    return await write();
+  } catch (err) {
+    if (violates(err, UNIQUE_VIOLATION, NAME_CONSTRAINT)) {
+      throw new DuplicateServiceName(serviceName);
+    }
+    throw err;
+  }
+}
 
 const serviceFields = {
   id: services.id,
@@ -41,20 +63,22 @@ export async function createService(
     .from(services)
     .where(eq(services.agentId, agentId));
 
-  const rows = await db
-    .insert(services)
-    .values({
-      agentId,
-      name: draft.name,
-      price: draft.price,
-      description: draft.description ?? "",
-      durationMinutes: draft.durationMinutes,
-      bufferBeforeMinutes: draft.bufferBeforeMinutes,
-      bufferAfterMinutes: draft.bufferAfterMinutes,
-      requiredResources: draft.requiredResources,
-      position: (highest ?? -1) + 1,
-    })
-    .returning(serviceFields);
+  const rows = await named(draft.name, () =>
+    db
+      .insert(services)
+      .values({
+        agentId,
+        name: draft.name,
+        price: draft.price,
+        description: draft.description ?? "",
+        durationMinutes: draft.durationMinutes,
+        bufferBeforeMinutes: draft.bufferBeforeMinutes,
+        bufferAfterMinutes: draft.bufferAfterMinutes,
+        requiredResources: draft.requiredResources,
+        position: (highest ?? -1) + 1,
+      })
+      .returning(serviceFields),
+  );
 
   const row = rows[0]!;
   return { ...row, description: row.description || undefined };
@@ -65,11 +89,13 @@ export async function updateService(
   id: string,
   patch: Partial<ServiceDraft>,
 ): Promise<Service | null> {
-  const rows = await db
-    .update(services)
-    .set({ ...patch, updatedAt: new Date() })
-    .where(and(eq(services.id, id), eq(services.agentId, agentId)))
-    .returning(serviceFields);
+  const rows = await named(patch.name ?? "", () =>
+    db
+      .update(services)
+      .set({ ...patch, updatedAt: new Date() })
+      .where(and(eq(services.id, id), eq(services.agentId, agentId)))
+      .returning(serviceFields),
+  );
 
   const row = rows[0];
   return row ? { ...row, description: row.description || undefined } : null;
@@ -91,6 +117,13 @@ export async function replaceServices(
   agentId: string,
   drafts: ServiceDraft[],
 ): Promise<void> {
+  const seen = new Set<string>();
+  for (const draft of drafts) {
+    const key = draft.name.trim().toLowerCase();
+    if (seen.has(key)) throw new DuplicateServiceName(draft.name);
+    seen.add(key);
+  }
+
   await db.transaction(async (tx) => {
     await tx.delete(services).where(eq(services.agentId, agentId));
     if (drafts.length === 0) return;

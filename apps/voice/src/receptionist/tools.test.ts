@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { z } from "zod";
 import { createAgentTools } from "./tools.js";
 import { makeAgentDeps } from "./fixtures.js";
 import { createEscalation } from "@receptionist/core/repositories/escalations.js";
@@ -57,9 +58,16 @@ const runCtx = () => ({ ctx: { session: { say: vi.fn(), shutdown: vi.fn() } } })
 const escalationCtx = () =>
   ({ ctx: { speechHandle: {}, session: { say: vi.fn() } } }) as never;
 
+/** The booking tools reach the model only for a business that lists services. */
+const bookingTools = (deps = okCalendar()) => {
+  const tools = createAgentTools(deps);
+  if (!("checkAvailability" in tools)) throw new Error("this fixture lists no services");
+  return tools;
+};
+
 describe("every tool returns a result to the model", () => {
   it("checkAvailability returns slots, not a function", async () => {
-    const tools = createAgentTools(okCalendar());
+    const tools = bookingTools();
     const result = await tools.checkAvailability.execute(
       { service: "Haircut", preferredDate: null, partOfDay: null },
       runCtx(),
@@ -77,7 +85,7 @@ describe("every tool returns a result to the model", () => {
   });
 
   it("bookAppointment returns a result for an unknown slot", async () => {
-    const tools = createAgentTools(okCalendar());
+    const tools = bookingTools();
     const result = await tools.bookAppointment.execute(
       { slotId: "nope", callerName: "Prabhat" },
       runCtx(),
@@ -89,7 +97,7 @@ describe("every tool returns a result to the model", () => {
 
   it("bookAppointment returns a result for a held slot", async () => {
     const deps = okCalendar();
-    const tools = createAgentTools(deps);
+    const tools = bookingTools(deps);
 
     // Offer a slot first, exactly as a real call does.
     const offered = (await tools.checkAvailability.execute(
@@ -140,11 +148,43 @@ describe("every tool returns a result to the model", () => {
   });
 });
 
+describe("the services a caller can ask for", () => {
+  it("names the catalogue in the parameter the model fills in", () => {
+    const tools = bookingTools();
+    const shape = (tools.checkAvailability.parameters as z.ZodObject<z.ZodRawShape>)
+      .shape;
+    const service = shape.service as z.ZodEnum<[string, ...string[]]>;
+
+    expect(service.options).toEqual(makeAgentDeps().services.map((s) => s.name));
+  });
+});
+
+describe("a business that lists no services", () => {
+  const noServices = () => createAgentTools(makeAgentDeps({ services: [] }));
+
+  it("withholds the booking tools from the model", () => {
+    const tools = noServices();
+
+    expect("checkAvailability" in tools).toBe(false);
+    expect("bookAppointment" in tools).toBe(false);
+  });
+
+  it("keeps every tool the caller still needs", () => {
+    expect(Object.keys(noServices()).sort()).toEqual([
+      "cancelAppointment",
+      "createEscalation",
+      "endCall",
+      "lookupAppointments",
+      "rememberCallerName",
+    ]);
+  });
+});
+
 /** Two callers offered one slot both clear the freeBusy re-check, so the database
  *  is the only place the second can be stopped. */
 describe("a slot another caller took first", () => {
   const offerThenBook = async (slotCallerName = "Prabhat") => {
-    const tools = createAgentTools(okCalendar());
+    const tools = bookingTools();
     const offered = (await tools.checkAvailability.execute(
       { service: "Haircut", preferredDate: null, partOfDay: null },
       runCtx(),

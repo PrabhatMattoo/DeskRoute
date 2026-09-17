@@ -284,17 +284,10 @@ export function describeDate(dateIso: string, timeZone: string): string {
   }).format(zonedWallClockToUtc(dateIso, "12:00", timeZone));
 }
 
-/** Exact, then case-insensitive, then containment. Null rather than a guess
- *  between two candidates. */
-export function findService(services: Service[], spoken: string): Service | null {
-  const needle = spoken.trim().toLowerCase();
-  if (!needle) return null;
-
-  const exact = services.find((s) => s.name.toLowerCase() === needle);
-  if (exact) return exact;
-
-  const partial = services.filter(
-    (s) => s.name.toLowerCase().includes(needle) || needle.includes(s.name.toLowerCase()),
-  );
-  return partial.length === 1 ? partial[0]! : null;
+/** `checkAvailability` offers the catalogue by name, and `services_agent_name_idx`
+ *  keeps one name on one row, so this reads a name back to its service. */
+export function serviceByName(services: Service[], name: string): Service | null {
+  const wanted = name.trim().toLowerCase();
+  if (!wanted) return null;
+  return services.find((s) => s.name.trim().toLowerCase() === wanted) ?? null;
 }

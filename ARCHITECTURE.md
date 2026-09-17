@@ -80,7 +80,7 @@ Postgres 17, Drizzle, migrations in `packages/core/drizzle`. `docker-compose.yml
 
 **`escalations`** carries its own `caller_name`, because an anonymous caller has no `callers` row to hang one on. Its dedup index is unique on `(call_id, lower(question))` where `call_id IS NOT NULL`. Status values are lowercase `pending` and `resolved`.
 
-**`services`** is a table rather than a blob, so a booking points at a permanent id that survives a rename. `required_resources` is `string[]`, plural from day one and empty for everyone.
+**`services`** is a table, so a booking points at a permanent id that survives a rename. `services_agent_name_idx` is unique on `(agent_id, lower(trim(name)))`, which is the comparison `serviceByName` makes, so one spoken name reaches one row. `required_resources` is `string[]`, plural from day one and empty for everyone.
 
 **`appointments`** holds `service_id` with `ON DELETE SET NULL` beside `service_name`, the name as it stood at booking, and its own `caller_name`. `external_event_id` names the event in whichever provider `agents.calendar_provider` names. `block_start` and `block_end` are the padded block, carried so `appointments_no_overlap` can reserve it; they are null on a request that holds no time.
 
@@ -118,7 +118,9 @@ Everything above the Caller heading is identical across calls and forms a cachea
 
 The knowledge base is inlined into the prompt at call start, capped at 300 items by `KNOWLEDGE_PROMPT_LIMIT`. There is no retrieval tool.
 
-`bookAppointment` and `createEscalation` both take `callerName`, so asking is enforced by the schema rather than requested in prose, and only at those two moments. Both go through one `resolveCallerName`: a name given now beats one already stored, it is written to `callers.name` when a row exists, and it falls back to the stored name.
+**The catalogue reaches the model as a schema.** `checkAvailability` types its `service` parameter as `z.enum` over the agent's own service names, so the model chooses from the list instead of passing the caller's words through for the backend to match. A business listing no services receives neither booking tool, because a tool the model never holds is a tool it cannot reach for.
+
+`bookAppointment` and `createEscalation` both take `callerName`, so asking is enforced by the schema and only at those two moments. Both go through one `resolveCallerName`: a name given now beats one already stored, it is written to `callers.name` when a row exists, and it falls back to the stored name.
 
 `endCall` uses `ctx.session.shutdown({ drain: true })`.
 
@@ -129,7 +131,7 @@ The knowledge base is inlined into the prompt at call start, capped at 300 items
 - `zonedWallClockToUtc` corrects the offset in two passes, since the offset depends on the instant being solved for. No date dependency: Temporal is not stable in Node 22.
 - `generateCandidateSlots` walks a 15-minute grid of **appointment** starts, so quoted times land on the quarter hour rather than wherever padding pushed them. Each interval carries its own edges, so a lunch split has four rather than two.
 - `filterByBusy` compares the **padded block** against freeBusy, so cleanup after the previous job counts as a conflict.
-- `findService` matches what a caller says against the catalogue: exact, then case-insensitive, then containment. Null rather than a guess between two candidates.
+- `serviceByName` reads a catalogue name back to its service, ignoring case and surrounding space. It answers null for a name the catalogue leaves out, which a provider that leaves the enum unenforced can still produce.
 
 `providers/calendar.ts` only fetches. Google can say what is taken; deciding what exists needs the opening hours and the service length.
 

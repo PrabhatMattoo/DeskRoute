@@ -227,7 +227,14 @@ export const services = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },
-  (table) => [index("services_agent_position_idx").on(table.agentId, table.position)],
+  (table) => [
+    index("services_agent_position_idx").on(table.agentId, table.position),
+    /** The agent names a service to book it, so one name reaches one row. */
+    uniqueIndex("services_agent_name_idx").on(
+      table.agentId,
+      sql`lower(trim(${table.name}))`,
+    ),
+  ],
 );
 
 export const appointments = pgTable(

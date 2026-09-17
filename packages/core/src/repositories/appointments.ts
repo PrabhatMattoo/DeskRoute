@@ -1,6 +1,7 @@
 import { and, asc, desc, eq, gt, ne } from "drizzle-orm";
 import { db } from "../db/client.js";
 import { appointments } from "../db/schema.js";
+import { EXCLUSION_VIOLATION, violates } from "../db/pg-error.js";
 
 export type AppointmentRow = typeof appointments.$inferSelect;
 
@@ -30,21 +31,10 @@ export class SlotTaken extends Error {
   }
 }
 
-const EXCLUSION_VIOLATION = "23P01";
 const OVERLAP_CONSTRAINT = "appointments_no_overlap";
 
-/** Drizzle wraps the driver error, so the pg code and constraint sit on `cause`. */
-function isSlotTaken(err: unknown): boolean {
-  for (
-    let e = err, depth = 0;
-    e && depth < 5;
-    e = (e as { cause?: unknown }).cause, depth++
-  ) {
-    const { code, constraint } = e as { code?: string; constraint?: string };
-    if (code === EXCLUSION_VIOLATION && constraint === OVERLAP_CONSTRAINT) return true;
-  }
-  return false;
-}
+const isSlotTaken = (err: unknown) =>
+  violates(err, EXCLUSION_VIOLATION, OVERLAP_CONSTRAINT);
 
 export async function createAppointment(
   input: CreateAppointmentInput,

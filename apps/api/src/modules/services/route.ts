@@ -5,6 +5,7 @@ import {
   createService,
   updateService,
   deleteService,
+  DuplicateServiceName,
 } from "@receptionist/core/repositories/services.js";
 import { serviceDraftSchema, serviceUpdateSchema } from "../../schemas.js";
 
@@ -13,14 +14,28 @@ export const services = new Hono<AppEnv>()
   .post("/", async (c) => {
     const parsed = serviceDraftSchema.safeParse(await c.req.json());
     if (!parsed.success) return c.json({ error: parsed.error.flatten() }, 400);
-    return c.json(await createService(c.get("agentId"), parsed.data), 201);
+    try {
+      return c.json(await createService(c.get("agentId"), parsed.data), 201);
+    } catch (err) {
+      if (err instanceof DuplicateServiceName) return c.json({ error: err.message }, 409);
+      throw err;
+    }
   })
   .patch("/:id", async (c) => {
     const parsed = serviceUpdateSchema.safeParse(await c.req.json());
     if (!parsed.success) return c.json({ error: parsed.error.flatten() }, 400);
-    const updated = await updateService(c.get("agentId"), c.req.param("id"), parsed.data);
-    if (!updated) return c.json({ error: "Service not found" }, 404);
-    return c.json(updated);
+    try {
+      const updated = await updateService(
+        c.get("agentId"),
+        c.req.param("id"),
+        parsed.data,
+      );
+      if (!updated) return c.json({ error: "Service not found" }, 404);
+      return c.json(updated);
+    } catch (err) {
+      if (err instanceof DuplicateServiceName) return c.json({ error: err.message }, 409);
+      throw err;
+    }
   })
   .delete("/:id", async (c) => {
     const id = c.req.param("id");

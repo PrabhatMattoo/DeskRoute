@@ -1,6 +1,7 @@
 import { Plus, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { NumberField } from '@/components/ui/number-field'
+import { UNIT } from '@/lib/formatters'
 import { SubRow } from './SettingsList'
 
 interface ExtraTimeProps {
@@ -18,10 +19,7 @@ export function ExtraTime({ before, after, onChange }: ExtraTimeProps) {
 
   if (!shown) {
     return (
-      <SubRow
-        title="Extra time"
-        description="Time your calendar holds around this appointment. Most services need none."
-      >
+      <SubRow title="Extra time" description="Calendar time held either side.">
         <Button variant="outline" size="sm" onClick={() => onChange(15, 0)}>
           <Plus />
           Add extra time
@@ -31,23 +29,18 @@ export function ExtraTime({ before, after, onChange }: ExtraTimeProps) {
   }
 
   return (
-    <SubRow
-      title="Extra time"
-      description="Held on your calendar either side. Your agent never mentions it to a caller."
-    >
+    <SubRow title="Extra time" description="Never said to the caller." stacked>
       <div className="flex items-center gap-2">
         <NumberField
           label="Minutes held before the appointment"
-          unit="min"
-          className="w-field-xs"
+          unit={UNIT.minutes}
           value={before}
           onChange={(n) => onChange(n, after)}
         />
         <span className="text-muted-foreground">before</span>
         <NumberField
           label="Minutes held after the appointment"
-          unit="min"
-          className="w-field-xs"
+          unit={UNIT.minutes}
           value={after}
           onChange={(n) => onChange(before, n)}
         />

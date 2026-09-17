@@ -6,7 +6,7 @@ import {
   describeDate,
   describeSlot,
   filterByBusy,
-  findService,
+  serviceByName,
   generateCandidateSlots,
   intervalsForDate,
   localDateIso,
@@ -415,36 +415,31 @@ describe("describeDate", () => {
   });
 });
 
-describe("findService", () => {
+describe("serviceByName", () => {
   const services = [
     service({ id: "a", name: "Haircut" }),
     service({ id: "b", name: "Colour" }),
   ];
 
-  it("matches exactly", () => {
-    expect(findService(services, "Haircut")?.id).toBe("a");
+  it("reads a catalogue name back to its service", () => {
+    expect(serviceByName(services, "Haircut")?.id).toBe("a");
   });
 
   it("ignores case and stray spaces", () => {
-    expect(findService(services, "  colour ")?.id).toBe("b");
+    expect(serviceByName(services, "  colour ")?.id).toBe("b");
   });
 
-  it("matches what a caller actually says", () => {
-    // Speech-to-text rarely returns the catalogue name verbatim.
-    expect(findService(services, "a haircut please")?.id).toBe("a");
-  });
-
-  it("refuses to guess between two candidates", () => {
-    const ambiguous = [
+  it("separates a name that another name contains", () => {
+    const overlapping = [
       service({ id: "a", name: "Colour" }),
       service({ id: "b", name: "Colour correction" }),
     ];
-    expect(findService(ambiguous, "colour")?.id).toBe("a");
-    expect(findService(ambiguous, "col")).toBeNull();
+    expect(serviceByName(overlapping, "Colour")?.id).toBe("a");
+    expect(serviceByName(overlapping, "Colour correction")?.id).toBe("b");
   });
 
-  it("returns null for something not offered", () => {
-    expect(findService(services, "massage")).toBeNull();
+  it("returns null for a name the catalogue does not carry", () => {
+    expect(serviceByName(services, "massage")).toBeNull();
   });
 });
 

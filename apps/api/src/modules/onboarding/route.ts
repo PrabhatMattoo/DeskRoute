@@ -5,7 +5,10 @@ import {
   addPhoneNumber,
   resolveAgentByClerkUserId,
 } from "@receptionist/core/repositories/agents.js";
-import { replaceServices } from "@receptionist/core/repositories/services.js";
+import {
+  replaceServices,
+  DuplicateServiceName,
+} from "@receptionist/core/repositories/services.js";
 import {
   searchPhoneNumbers,
   purchasePhoneNumber,
@@ -66,6 +69,9 @@ export const onboarding = new Hono()
       await releasePhoneNumber(purchased.e164_format).catch((e: unknown) =>
         console.error("[onboarding] rollback release failed:", e),
       );
+      if (dbErr instanceof DuplicateServiceName) {
+        return c.json({ message: dbErr.message }, 409);
+      }
       throw dbErr;
     }
 

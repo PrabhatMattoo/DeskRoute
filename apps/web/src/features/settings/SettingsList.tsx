@@ -55,83 +55,14 @@ interface RowProps {
   htmlFor?: string
 }
 
-/**
- * One setting. Title and description on the left, control on the right, and a
- * hairline above every row but the first.
- */
-export function Row({ title, description, children, stacked, htmlFor }: RowProps) {
-  const label = (
-    <div className="min-w-0">
-      <label htmlFor={htmlFor} className="block text-sm font-medium text-foreground">
-        {title}
-      </label>
-      {description && (
-        <p className={cn('mt-0.5 text-muted-foreground', MEASURE)}>{description}</p>
-      )}
-    </div>
-  )
-
-  if (stacked) {
-    return (
-      <li className="flex flex-col gap-2 border-t border-border/60 p-4 first:border-t-0">
-        {label}
-        {children}
-      </li>
-    )
-  }
-
-  return (
-    <li className="flex items-center justify-between gap-5 border-t border-border/60 p-4 first:border-t-0">
-      {label}
-      {children && <div className="shrink-0">{children}</div>}
-    </li>
-  )
+/** Beside the label, or under it. Both rows read from this, so neither drifts. */
+function layout(stacked?: boolean) {
+  return stacked ? 'flex flex-col gap-2' : 'flex items-center justify-between gap-5'
 }
 
-/** A row carrying an action rather than a setting, such as Add. */
-export function ActionRow({ children }: { children: React.ReactNode }) {
+function RowContent({ title, description, children, stacked, htmlFor }: RowProps) {
   return (
-    <li className="flex items-center gap-4 border-t border-border/60 p-4 first:border-t-0">
-      {children}
-    </li>
-  )
-}
-
-/** A row opened for editing, with its fields as sub-rows. */
-export function OpenRow({
-  title,
-  action,
-  children,
-}: {
-  title: string
-  action: React.ReactNode
-  children: React.ReactNode
-}) {
-  return (
-    <li className="border-t border-border/60 bg-hover/40 p-4 first:border-t-0">
-      <div className="flex items-center justify-between gap-5">
-        <span className="text-sm font-medium text-foreground">{title}</span>
-        <div className="shrink-0">{action}</div>
-      </div>
-      <div className="mt-2">{children}</div>
-    </li>
-  )
-}
-
-/** A field inside an opened row. */
-export function SubRow({
-  title,
-  description,
-  children,
-  htmlFor,
-}: {
-  title: string
-  description?: string
-  children: React.ReactNode
-  htmlFor?: string
-}) {
-  return (
-    <div className="flex items-center justify-between gap-5 border-t border-border/60 py-2.5">
+    <>
       <div className="min-w-0">
         <label htmlFor={htmlFor} className="block text-sm font-medium text-foreground">
           {title}
@@ -140,7 +71,33 @@ export function SubRow({
           <p className={cn('mt-0.5 text-muted-foreground', MEASURE)}>{description}</p>
         )}
       </div>
-      <div className="shrink-0">{children}</div>
+      {children && (stacked ? children : <div className="shrink-0">{children}</div>)}
+    </>
+  )
+}
+
+/**
+ * One setting. Title and description on the left, control on the right, and a
+ * hairline above every row but the first.
+ */
+export function Row(props: RowProps) {
+  return (
+    <li
+      className={cn(
+        layout(props.stacked),
+        'border-t border-border/60 p-4 first:border-t-0',
+      )}
+    >
+      <RowContent {...props} />
+    </li>
+  )
+}
+
+/** A field in a drawer, where the panel is the boundary and a rule adds nothing. */
+export function SubRow(props: RowProps) {
+  return (
+    <div className={cn(layout(props.stacked), 'py-3')}>
+      <RowContent {...props} />
     </div>
   )
 }

@@ -20,7 +20,7 @@ export function setupItems(settings: AppSettings): SetupItem[] {
       id: 'services',
       title: 'Add your services',
       description:
-        'Your agent cannot quote a price or offer a time until it knows what you sell.',
+        'Your agent quotes and books from this list, so a caller can book only what it holds.',
       minutes: '2 min',
       action: 'Add services',
       to: '/settings?tab=business',

@@ -13,7 +13,7 @@ import {
   describeDate,
   describeSlot,
   filterByBusy,
-  findService,
+  serviceByName,
   generateCandidateSlots,
   isOpenOn,
 } from "@receptionist/core/domain/scheduling.js";
@@ -51,30 +51,27 @@ export function createAgentTools(deps: AgentDeps) {
     return given ?? deps.caller?.name ?? null;
   }
 
-  /** No hold phrase: speech is a queue, so one stands in front of the tool's
-   *  answer and the answer is discarded. */
-
-  return {
+  const conversation = {
     createEscalation: llm.tool({
       description:
-        "Record a question you could not answer, so the business owner can answer it later. " +
-        "Use this only after checking everything you were given — the services, hours and knowledge in your instructions. " +
-        "Also use it when the caller wants something you have no way to do, such as booking when no calendar is connected. " +
-        "Say the fallback line to the caller first; this tool records the question, it does not reply to anyone. " +
-        "Before calling this, ask for the caller's name — 'Can I take your name?' — because somebody has to ring them back. " +
-        "At most once per question per call.",
+        "Records one question for the business owner to answer after the call ends. " +
+        "Use it for a question the services, hours and knowledge above leave unanswered, and for a request this agent has no way to carry out. " +
+        "The tool writes the question down and returns; speaking to the caller stays with the agent, so say the fallback line and take the caller's name first. " +
+        "Records at most one entry per question per call.",
       parameters: z.object({
-        question: z.string().describe("The caller's question, as asked."),
+        question: z.string().describe("The caller's question, in the words they used."),
         callerName: z
           .string()
           .nullable()
           .describe(
-            "The name of the person to ring back. Ask for it before recording the question if you do not already know it. Pass null only if they were asked and declined.",
+            "The name of the person to ring back, for example Dana. Null when the caller was asked and declined.",
           ),
         transcriptExcerpt: z
           .string()
           .nullable()
-          .describe("A short excerpt of recent conversation for context."),
+          .describe(
+            "Up to two sentences of surrounding conversation. Null when the question stands on its own.",
+          ),
       }),
       execute: async ({ question, callerName, transcriptExcerpt }, { ctx }) => {
         ctx.speechHandle.allowInterruptions = false;
@@ -99,20 +96,19 @@ export function createAgentTools(deps: AgentDeps) {
 
     rememberCallerName: llm.tool({
       description:
-        "Remember the caller's name for future calls, when they offer it in conversation. " +
-        "Do NOT ask for a name just to call this — only use a name the caller actually said. " +
-        "You do not need this before booking: bookAppointment takes the name itself. " +
-        "At most once per call.",
+        "Stores a name the caller offered in conversation, so a later call greets them by it. " +
+        "Use it for a name the caller said of their own accord. " +
+        "Booking takes its own name, so a booking needs no call here. " +
+        "Stores at most one name per call.",
       parameters: z.object({
         name: z
           .string()
           .describe(
-            "The caller's name as they said it, first name alone is fine. Not a spelling, not a title.",
+            "The caller's name as spoken, for example Dana. A first name on its own is enough.",
           ),
       }),
       execute: async ({ name }) => {
-        // No client row for an anonymous caller, so there is nothing to attach
-        // a name to. Say nothing to the caller about it.
+        // An anonymous caller has no row to attach a name to.
         if (!deps.caller) return { saved: false };
 
         const updated = await setCallerName(agentId, deps.caller.id, name);
@@ -124,48 +120,151 @@ export function createAgentTools(deps: AgentDeps) {
       },
     }),
 
+    lookupAppointments: llm.tool({
+      description:
+        "Returns the caller's upcoming appointments, found by the number they are calling from. " +
+        "Use it when the caller asks about a booking they already hold. " +
+        "Returns an empty list and a message when the number is withheld or no booking stands.",
+      parameters: z.object({}),
+      execute: async () => {
+        // A shared placeholder key would read one caller's appointments to another.
+        if (!deps.callerPhone) {
+          return {
+            appointments: [],
+            message:
+              "This caller's number is withheld, so their bookings cannot be looked up. " +
+              "Ask the caller which number the appointment was booked under.",
+          };
+        }
+        const upcoming = await getUpcomingByPhone(agentId, deps.callerPhone);
+        if (upcoming.length === 0) {
+          return {
+            appointments: [],
+            message: "This number holds no upcoming appointments.",
+          };
+        }
+        return {
+          appointments: upcoming.map((a) => ({
+            id: a.id,
+            service: a.service,
+            startTime: a.startTime?.toISOString() ?? null,
+            endTime: a.endTime?.toISOString() ?? null,
+            status: a.status,
+          })),
+        };
+      },
+    }),
+
+    cancelAppointment: llm.tool({
+      description:
+        "Cancels one appointment and removes its calendar entry. " +
+        "Call it once the appointment details have been read back to the caller and the caller has confirmed the cancellation. " +
+        "Returns an error when the id names no appointment for this business.",
+      parameters: z.object({
+        appointmentId: z
+          .string()
+          .describe("The id of the appointment, copied from lookupAppointments."),
+      }),
+      execute: async ({ appointmentId }) => {
+        const cancelled = await cancelAppointmentById(appointmentId, agentId);
+        if (!cancelled) {
+          return {
+            error:
+              "That id matches no appointment for this business. Call lookupAppointments and read the caller what it returns.",
+          };
+        }
+
+        if (cancelled.externalEventId && deps.calendarExternalId) {
+          const token = await deps.getGoogleToken();
+          if (token) {
+            try {
+              await deleteCalendarEvent(
+                token,
+                deps.calendarExternalId,
+                cancelled.externalEventId,
+              );
+            } catch (err) {
+              console.error("[agent] deleteCalendarEvent failed:", err);
+            }
+          }
+        }
+
+        return { cancelled: true, appointmentId };
+      },
+    }),
+
+    endCall: llm.tool({
+      description:
+        "Speaks the farewell and hangs up. " +
+        "Call it once the caller has said they are finished, for example 'goodbye', 'thanks, that's all' or 'that's everything'.",
+      parameters: z.object({}),
+      execute: async (_params, { ctx }) => {
+        const farewell = deps.agent.farewell;
+        if (farewell) {
+          ctx.session.say(farewell, { allowInterruptions: false });
+        }
+        ctx.session.shutdown({ drain: true });
+      },
+    }),
+  };
+
+  const [firstName, ...otherNames] = deps.services.map((s) => s.name);
+
+  // A business with no services has nothing to offer a time for, and a tool the
+  // model never receives is a tool it cannot reach for.
+  if (firstName === undefined) return conversation;
+
+  const catalogue = deps.services.map((s) => s.name).join(", ");
+
+  return {
+    ...conversation,
+
     checkAvailability: llm.tool({
       description:
-        "Find real, bookable times for one service. " +
-        "You must call this before saying any time out loud — you have no way to know what is free otherwise, and a time you invent is a customer turning up to a closed door. " +
-        "Returns up to three slots, each with an id. Read the times to the caller in plain words and keep the ids to yourself.",
+        "Returns up to three bookable times for one service, each with a slot id. " +
+        "Call it before naming any time to the caller, so every time spoken is one the business can keep. " +
+        "Read the times aloud in plain words and hold each slot id for bookAppointment. " +
+        "Returns an empty slot list and a note when the window holds nothing.",
       parameters: z.object({
-        service: z.string().describe("The service the caller wants, as they said it."),
+        service: z
+          .enum([firstName, ...otherNames])
+          .describe("The service to find times for, chosen from this business's list."),
         preferredDate: z
           .string()
           .nullable()
           .describe(
-            "The date the caller asked for, as YYYY-MM-DD. Null if they did not name one.",
+            "The date the caller asked for, as YYYY-MM-DD, for example 2026-09-24. Null when the caller named no date.",
           ),
         partOfDay: z
           .enum(["morning", "afternoon", "evening"])
           .nullable()
-          .describe("Only if the caller asked for one. Null otherwise."),
+          .describe(
+            "The part of day the caller asked for. Null when the caller named none.",
+          ),
       }),
       execute: async ({ service, preferredDate, partOfDay }) => {
         const calendarId = deps.calendarExternalId;
         if (!calendarId) {
           return {
             error:
-              "No calendar is connected, so times cannot be checked. Create an escalation so the team can follow up.",
+              "This business has no calendar connected, so no time can be offered. Tell the caller the team will call back, then call createEscalation with their request.",
           };
         }
 
-        const matched = findService(deps.services, service);
+        const matched = serviceByName(deps.services, service);
         if (!matched) {
-          // Never guess a service: the wrong one means the wrong length, and
-          // therefore a slot the business cannot honour.
+          // A provider that leaves the enum unenforced can return a name the
+          // catalogue never held, and a guess here books the wrong length.
           return {
-            error: `"${service}" is not on the service list. Ask the caller which service they mean, from: ${deps.services
-              .map((s) => s.name)
-              .join(", ")}.`,
+            error: `"${service}" is not one of this business's services. Tell the caller what it does offer, from: ${catalogue}. Then ask which one they want.`,
           };
         }
 
         const token = await deps.getGoogleToken();
         if (!token) {
           return {
-            error: "Calendar authentication unavailable. Create an escalation.",
+            error:
+              "The calendar connection is not usable, so no time can be offered. Tell the caller the team will call back, then call createEscalation with their request.",
           };
         }
 
@@ -176,11 +275,10 @@ export function createAgentTools(deps: AgentDeps) {
           maxAdvanceDays: deps.agent.maxAdvanceDays,
         };
 
-        // A closed day is not a dead end. Say so, then keep looking forward —
-        // the caller still wants an appointment.
+        // A closed day still wants an appointment, so the search carries forward.
         const closedNote =
           preferredDate && !isOpenOn(hours, preferredDate)
-            ? `The business is closed on ${describeDate(preferredDate, timeZone)}. Say so, then offer these instead.`
+            ? `This business is closed on ${describeDate(preferredDate, timeZone)}. Say so, then offer the times below.`
             : undefined;
 
         const candidates = generateCandidateSlots({
@@ -197,9 +295,9 @@ export function createAgentTools(deps: AgentDeps) {
         if (candidates.length === 0) {
           return {
             slots: [],
-            note: `No times are available${
+            note: `This business opens no ${matched.name} time${
               preferredDate ? ` around ${describeDate(preferredDate, timeZone)}` : ""
-            }. Offer to have the team call back, or create an escalation.`,
+            }. Offer a callback, or ask the caller for another day.`,
           };
         }
 
@@ -215,14 +313,15 @@ export function createAgentTools(deps: AgentDeps) {
         } catch (err) {
           console.error("[agent] freeBusy lookup failed:", err);
           return {
-            error: "Could not check the calendar. Create an escalation.",
+            error:
+              "The calendar could not be read, so no time can be offered. Tell the caller the team will call back, then call createEscalation with their request.",
           };
         }
 
         if (free.length === 0) {
           return {
             slots: [],
-            note: "Everything in that window is booked. Offer a different day.",
+            note: "Every time in that window is booked. Ask the caller for another day.",
           };
         }
 
@@ -242,31 +341,28 @@ export function createAgentTools(deps: AgentDeps) {
 
     bookAppointment: llm.tool({
       description:
-        "Confirm a booking for a slot that checkAvailability already offered. " +
-        "Before calling this you need two things: the caller has chosen one of the times you read out, and you know their name. " +
-        "If you do not have a name yet, ask for it now — 'Can I take your name?' — because the booking goes in the diary under it. " +
-        "Never invent a slotId, and never call this for a time you did not offer.",
+        "Confirms a booking for a slot checkAvailability returned during this call. " +
+        "Call it once the caller has chosen one of the times read to them and their name is known; ask 'Can I take your name?' when it is not. " +
+        "Books only a slot id from this call, and returns an error when that slot has since been taken.",
       parameters: z.object({
         slotId: z
           .string()
           .describe(
-            "The id of the slot the caller chose, exactly as checkAvailability returned it.",
+            "The slot id the caller chose, copied from checkAvailability, for example slot_1.",
           ),
         callerName: z
           .string()
           .nullable()
           .describe(
-            "The name to put in the diary. Ask the caller for it before booking if you do not already know it. Pass null only if they were asked and declined to give one.",
+            "The name the diary entry carries, for example Dana. Null when the caller was asked and declined.",
           ),
       }),
       execute: async ({ slotId, callerName }) => {
         const held = deps.slots.held.get(slotId);
         if (!held) {
-          // The model made one up, or referred to an offer from before a
-          // re-check. Either way, do not book something never offered.
           return {
             error:
-              "That time is no longer held. Call checkAvailability again and offer the caller a fresh set of times.",
+              "That slot id belongs to no time offered in this call. Call checkAvailability again and read the caller the times it returns.",
           };
         }
 
@@ -294,13 +390,13 @@ export function createAgentTools(deps: AgentDeps) {
           return {
             booked: false,
             reason:
-              "Calendar not connected — appointment request saved, team will confirm.",
+              "The request is saved and the team will confirm it. Tell the caller the time is held pending confirmation.",
           };
         }
 
         const taken = {
           error:
-            "That time was taken while you were talking. Call checkAvailability again and offer what is left.",
+            "Another caller took that time during this call. Call checkAvailability again and read the caller the times it returns.",
         };
 
         // The slot was computed while the caller was deciding, so it is
@@ -319,7 +415,8 @@ export function createAgentTools(deps: AgentDeps) {
           deps.callState.wasBooked = true;
           return {
             booked: false,
-            reason: "Booking failed — appointment request saved, team will confirm.",
+            reason:
+              "The request is saved and the team will confirm it. Tell the caller the time is held pending confirmation.",
           };
         }
 
@@ -346,7 +443,7 @@ export function createAgentTools(deps: AgentDeps) {
           console.error("[agent] createAppointment failed:", err);
           return {
             error:
-              "That booking could not be saved. Create an escalation so the team can follow up.",
+              "The booking could not be saved. Tell the caller the team will call back, then call createEscalation with their request.",
           };
         }
 
@@ -376,89 +473,14 @@ export function createAgentTools(deps: AgentDeps) {
           deps.callState.wasBooked = true;
           return {
             booked: false,
-            reason: "Booking failed — appointment request saved, team will confirm.",
+            reason:
+              "The request is saved and the team will confirm it. Tell the caller the time is held pending confirmation.",
           };
         }
 
         deps.callState.wasBooked = true;
         deps.slots.held.delete(slotId);
         return { booked: true, time: describeSlot(slot, timeZone) };
-      },
-    }),
-
-    lookupAppointments: llm.tool({
-      description:
-        "Look up a caller's upcoming appointments by their phone number. Use when a caller asks about existing bookings or wants to cancel/reschedule.",
-      parameters: z.object({}),
-      execute: async () => {
-        // No identity to look up. A shared placeholder key would read one
-        // caller's appointments to another.
-        if (!deps.callerPhone) {
-          return {
-            appointments: [],
-            message:
-              "This caller's number is withheld, so their bookings cannot be looked up. " +
-              "Ask the caller to read out the phone number their appointment was booked under.",
-          };
-        }
-        const upcoming = await getUpcomingByPhone(agentId, deps.callerPhone!);
-        if (upcoming.length === 0) {
-          return {
-            appointments: [],
-            message: "No upcoming appointments found.",
-          };
-        }
-        return {
-          appointments: upcoming.map((a) => ({
-            id: a.id,
-            service: a.service,
-            startTime: a.startTime?.toISOString() ?? null,
-            endTime: a.endTime?.toISOString() ?? null,
-            status: a.status,
-          })),
-        };
-      },
-    }),
-
-    cancelAppointment: llm.tool({
-      description:
-        "Cancel a confirmed appointment. Only call after you have read the appointment details back to the caller and they explicitly confirmed they want to cancel.",
-      parameters: z.object({
-        appointmentId: z.string().describe("The ID of the appointment to cancel."),
-      }),
-      execute: async ({ appointmentId }) => {
-        const cancelled = await cancelAppointmentById(appointmentId, agentId);
-        if (!cancelled) return { error: "Appointment not found." };
-
-        if (cancelled.externalEventId && deps.calendarExternalId) {
-          const token = await deps.getGoogleToken();
-          if (token) {
-            try {
-              await deleteCalendarEvent(
-                token,
-                deps.calendarExternalId,
-                cancelled.externalEventId,
-              );
-            } catch (err) {
-              console.error("[agent] deleteCalendarEvent failed:", err);
-            }
-          }
-        }
-
-        return { cancelled: true, appointmentId };
-      },
-    }),
-
-    endCall: llm.tool({
-      description:
-        "End the phone call. Use only after the caller has clearly indicated they are done — for example, said goodbye, thank you, or that's all.",
-      parameters: z.object({}),
-      execute: async (_params, { ctx }) => {
-        const farewell = deps.agent.farewell;
-        if (farewell) {
-          ctx.session.say(farewell, { allowInterruptions: false });
-        }
-        ctx.session.shutdown({ drain: true });
       },
     }),
   };

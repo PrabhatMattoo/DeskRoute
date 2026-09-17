@@ -17,7 +17,7 @@ import { DatePicker } from '@/components/ui/date-picker'
 import { Switch } from '@/components/ui/switch'
 import { apiClient } from '@/lib/apiClient'
 import { keys } from '@/lib/queries'
-import { formatDate } from '@/lib/formatters'
+import { formatDate, UNIT } from '@/lib/formatters'
 import type { AppSettings } from '@/lib/settings-types'
 import { Section, Row, SubRow } from './SettingsList'
 import { RecordDrawer } from './RecordDrawer'
@@ -301,7 +301,11 @@ export function HoursPanel({ settings }: { settings: AppSettings }) {
           onRemove={draft.index === null ? undefined : removeDraft}
           removeLabel="Remove date"
         >
-          <SubRow title="Date" description="The day this applies to." htmlFor="hol-date">
+          <SubRow
+            title="Date"
+            description="The date these hours replace."
+            htmlFor="hol-date"
+          >
             <DatePicker
               id="hol-date"
               value={draft.value.date}
@@ -309,11 +313,7 @@ export function HoursPanel({ settings }: { settings: AppSettings }) {
               className="w-field-md"
             />
           </SubRow>
-          <SubRow
-            title="Reason"
-            description="For your own reference. Your agent never says it."
-            htmlFor="hol-reason"
-          >
+          <SubRow title="Reason" description="A label only you see." htmlFor="hol-reason">
             <Input
               id="hol-reason"
               className="w-field-md"
@@ -331,11 +331,7 @@ export function HoursPanel({ settings }: { settings: AppSettings }) {
             />
           </SubRow>
           {draft.value.intervals.map((interval, j) => (
-            <SubRow
-              key={j}
-              title="Open between"
-              description="The hours for this one day."
-            >
+            <SubRow key={j} title="Open between" description="The hours this date uses.">
               <Interval
                 interval={interval}
                 onChange={(next) =>
@@ -367,13 +363,13 @@ export function HoursPanel({ settings }: { settings: AppSettings }) {
       >
         <Row
           title="Earliest a caller can book"
-          description="Your agent will not offer a time sooner than this, so you get some warning."
+          description="Your agent leaves you at least this much warning."
           htmlFor="min-notice"
         >
           <NumberField
             id="min-notice"
             label="Minimum notice in minutes"
-            unit="minutes"
+            unit={UNIT.minutes}
             value={policy.minNoticeMinutes}
             onChange={(minNoticeMinutes) =>
               setPolicy((p) => ({ ...p, minNoticeMinutes }))
@@ -382,13 +378,13 @@ export function HoursPanel({ settings }: { settings: AppSettings }) {
         </Row>
         <Row
           title="Furthest a caller can book"
-          description="Your agent will not offer a date beyond this."
+          description="Your agent offers no date beyond this many days."
           htmlFor="max-advance"
         >
           <NumberField
             id="max-advance"
             label="Furthest ahead in days"
-            unit="days"
+            unit={UNIT.days}
             value={policy.maxAdvanceDays}
             onChange={(maxAdvanceDays) => setPolicy((p) => ({ ...p, maxAdvanceDays }))}
           />

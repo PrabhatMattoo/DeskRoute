@@ -196,7 +196,7 @@ export function ConnectionsPanel({ settings }: { settings: AppSettings }) {
             </SubRow>
             <SubRow
               title="Text confirmations"
-              description="A message after a booking, and a reminder the day before."
+              description="Sent after a booking, and the day before."
             >
               <Button variant="outline" size="sm" disabled>
                 Not available yet

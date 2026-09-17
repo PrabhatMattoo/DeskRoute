@@ -55,7 +55,7 @@ export function AccountPanel() {
         </li>
         <Row
           title="First name"
-          description="Shown here only. Your agent never says it."
+          description="Shown in this dashboard only."
           htmlFor="first-name"
         >
           <Input
@@ -67,7 +67,7 @@ export function AccountPanel() {
         </Row>
         <Row
           title="Last name"
-          description="Shown here only. Your agent never says it."
+          description="Shown in this dashboard only."
           htmlFor="last-name"
         >
           <Input

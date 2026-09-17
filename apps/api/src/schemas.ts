@@ -17,7 +17,7 @@ const ianaTimezone = z.string().refine(
 );
 
 export const serviceDraftSchema = z.object({
-  name: z.string().min(1, "A service needs a name"),
+  name: z.string().trim().min(1, "A service needs a name"),
   price: z.string().default(""),
   description: z.string().optional(),
   // Upper bound is a sanity rail, not a product limit: a full day is 1440

@@ -13,9 +13,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { isAxiosError } from 'axios'
 import { apiClient } from '@/lib/apiClient'
 import { keys } from '@/lib/queries'
-import { formatMinutes } from '@/lib/formatters'
+import { formatMinutes, UNIT } from '@/lib/formatters'
 import { emptyService } from '@/lib/service-defaults'
 import type { AppSettings } from '@/lib/settings-types'
 import { Section, Row, SubRow } from './SettingsList'
@@ -110,6 +111,11 @@ export function BusinessPanel({ settings }: { settings: AppSettings }) {
 
   const unnamed = rows.some((r) => !r.name.trim())
 
+  /* The agent books a service by name, so two rows sharing one leave it unable
+     to tell them apart. `services_agent_name_idx` holds the same line. */
+  const named = rows.map((r) => r.name.trim().toLowerCase()).filter(Boolean)
+  const duplicated = new Set(named).size < named.length
+
   const save = useMutation({
     mutationFn: async () => {
       const original = new Map(server.services.map((s) => [s.id, s]))
@@ -140,7 +146,12 @@ export function BusinessPanel({ settings }: { settings: AppSettings }) {
       await qc.invalidateQueries({ queryKey: keys.settings })
       toast.success('Business saved')
     },
-    onError: () => toast.error('Could not save. Try again.'),
+    onError: (err) => {
+      const conflict = isAxiosError(err) && err.response?.status === 409
+      const message = (err as { response?: { data?: { error?: string } } }).response?.data
+        ?.error
+      toast.error(conflict && message ? message : 'Could not save. Try again.')
+    },
   })
 
   function discard() {
@@ -179,7 +190,7 @@ export function BusinessPanel({ settings }: { settings: AppSettings }) {
       <Section title="Business">
         <Row
           title="Business name"
-          description="Your agent says this out loud the moment it answers a call."
+          description="Your agent says the name the moment a call connects."
           htmlFor="biz-name"
         >
           <Input
@@ -191,7 +202,7 @@ export function BusinessPanel({ settings }: { settings: AppSettings }) {
         </Row>
         <Row
           title="Kind of business"
-          description="Your agent only uses this if a caller asks what you do."
+          description="Your agent names the trade when a caller asks what you do."
           htmlFor="industry"
         >
           <IndustryField
@@ -202,7 +213,7 @@ export function BusinessPanel({ settings }: { settings: AppSettings }) {
         </Row>
         <Row
           title="Timezone"
-          description="Your agent quotes every time in this zone."
+          description="Your agent quotes every appointment in this zone."
           htmlFor="timezone"
         >
           <Select
@@ -223,7 +234,7 @@ export function BusinessPanel({ settings }: { settings: AppSettings }) {
         </Row>
         <Row
           title="Description"
-          description="Anything a caller may ask that is not a service or an hour."
+          description="Anything a caller asks beyond services and hours."
           htmlFor="description"
           stacked
         >
@@ -238,7 +249,7 @@ export function BusinessPanel({ settings }: { settings: AppSettings }) {
 
       <Section
         title="Services"
-        lede="What your agent quotes, and how long each blocks your day."
+        lede="What a caller can book by phone."
         action={
           <Button
             variant="outline"
@@ -258,7 +269,7 @@ export function BusinessPanel({ settings }: { settings: AppSettings }) {
             description={summarise(row)}
           >
             <div className="flex items-center gap-4">
-              <span className="font-medium tabular-nums">{row.price}</span>
+              <span className="font-medium">{row.price}</span>
               <Button
                 variant="outline"
                 size="sm"
@@ -298,39 +309,41 @@ export function BusinessPanel({ settings }: { settings: AppSettings }) {
           </SubRow>
           <SubRow
             title="Price"
-            description="Said out loud when a caller asks what it costs."
+            description="Said out loud when a caller asks."
             htmlFor="svc-price"
           >
             <Input
               id="svc-price"
-              className="w-field-xs tabular-nums"
+              className="w-field-md"
+              placeholder="$45, or from $150"
               value={draft.value.price}
               onChange={(e) => patch({ price: e.target.value })}
             />
           </SubRow>
           <SubRow
             title="Appointment length"
-            description="How long the customer is with you. This is what your agent quotes."
+            description="How long the appointment runs."
             htmlFor="svc-length"
           >
             <NumberField
               id="svc-length"
               label="Appointment length in minutes"
-              unit="minutes"
+              unit={UNIT.minutes}
               value={draft.value.durationMinutes}
               onChange={(durationMinutes) => patch({ durationMinutes })}
             />
           </SubRow>
           <SubRow
-            title="Anything else callers ask about it"
-            description="Your agent reads from this. It never quotes it word for word."
+            title="Details"
+            description="Your agent reads these details when a caller asks for more."
             htmlFor="svc-desc"
+            stacked
           >
             <Textarea
               id="svc-desc"
               rows={2}
-              className="w-field-lg resize-none"
-              placeholder="Small and medium dogs only"
+              className="w-full resize-none"
+              placeholder="Please arrive five minutes early"
               value={draft.value.description}
               onChange={(e) => patch({ description: e.target.value })}
             />
@@ -346,7 +359,7 @@ export function BusinessPanel({ settings }: { settings: AppSettings }) {
       )}
 
       <SaveBar
-        changes={unnamed ? [] : changes}
+        changes={unnamed || duplicated ? [] : changes}
         saving={save.isPending}
         onSave={() => save.mutate()}
         onDiscard={discard}

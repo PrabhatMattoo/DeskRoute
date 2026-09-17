@@ -45,7 +45,7 @@ export default function SettingsPage() {
     <PageContainer size="form">
       <PageHeader
         title="Settings"
-        description="How your agent introduces the business, when it offers times, and what it is connected to."
+        description="How your agent introduces the business, when it offers times, and where it writes bookings."
       />
 
       <FilterPills
