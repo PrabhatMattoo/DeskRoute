@@ -186,7 +186,7 @@ export default function QueuePage() {
               id="answer"
               value={answer}
               onChange={(e) => setAnswer(e.target.value)}
-              placeholder="Write it the way you would say it."
+              placeholder="Write the answer the way you would say it aloud."
               className="min-h-28 resize-none"
             />
             <div className="mt-3.5 flex items-center gap-3">

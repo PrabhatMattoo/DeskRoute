@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Search, Trash2 } from 'lucide-react'
+import { BookOpen, Search, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import type { KnowledgeItem } from '@receptionist/shared'
 import { Button } from '@/components/ui/button'
@@ -9,6 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { PageContainer } from '@/layout/PageContainer'
 import { PageHeader } from '@/layout/PageHeader'
+import { EmptyState } from '@/layout/EmptyState'
 import { keys, fetchers } from '@/lib/queries'
 import { apiClient } from '@/lib/apiClient'
 import { useAgentZone } from '@/hooks/useAgentZone'
@@ -51,7 +52,7 @@ export default function KnowledgePage() {
         description="What your agent can answer on its own."
       />
 
-      {!isLoading && (data?.length ?? 0) > 0 && (
+      {!isLoading && (
         <div className="mb-5 flex items-center justify-between gap-4">
           <div className="relative w-field-lg">
             <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -76,10 +77,11 @@ export default function KnowledgePage() {
           ))}
         </div>
       ) : (data?.length ?? 0) === 0 ? (
-        <p className="py-2 text-muted-foreground">
-          Nothing in the knowledge base yet. Answer a question in Escalations and it is
-          saved here.
-        </p>
+        <EmptyState
+          icon={BookOpen}
+          title="No answers yet"
+          description="Answer a question in Escalations and it is saved here for every later call."
+        />
       ) : items.length === 0 ? (
         <p className="py-2 text-muted-foreground">Nothing matches that.</p>
       ) : (
@@ -126,7 +128,7 @@ export default function KnowledgePage() {
         open={!!pendingDelete}
         onOpenChange={(v) => !v && setPendingDelete(null)}
         title="Delete this answer?"
-        description="Your agent stops using it, and the next caller who asks is passed to you. This cannot be undone."
+        description="Your agent stops using the answer, and the next caller who asks is passed to you. Deleting cannot be undone."
         confirmLabel="Delete"
         variant="destructive"
         onConfirm={async () => {

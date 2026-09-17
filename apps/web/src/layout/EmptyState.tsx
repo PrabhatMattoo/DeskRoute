@@ -22,8 +22,10 @@ export function EmptyState({
 }: EmptyStateProps) {
   return (
     <div
+      // The deeper foot lifts the block above the true centre, where the eye
+      // looks for it.
       className={cn(
-        'flex w-full flex-1 items-center justify-center px-6 py-16',
+        'flex w-full flex-1 items-center justify-center px-6 pt-16 pb-40',
         className,
       )}
     >
@@ -31,10 +33,10 @@ export function EmptyState({
         <div className="flex size-10 items-center justify-center rounded-lg bg-sunk-1">
           <Icon className="size-5 text-muted-foreground" strokeWidth={1.75} />
         </div>
-        <h2 className="text-base font-semibold text-foreground">{title}</h2>
-        {description && (
-          <p className="leading-relaxed text-muted-foreground">{description}</p>
-        )}
+        <div>
+          <h2 className="text-base font-semibold text-foreground">{title}</h2>
+          {description && <p className="mt-1 text-muted-foreground">{description}</p>}
+        </div>
         {action && <div className="mt-1">{action}</div>}
       </div>
     </div>

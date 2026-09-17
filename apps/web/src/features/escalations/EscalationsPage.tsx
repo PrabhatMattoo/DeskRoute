@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { Search } from 'lucide-react'
+import { AlertCircle, Search } from 'lucide-react'
 import type { EscalationItem, EscalationStatus } from '@receptionist/shared'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -10,6 +10,7 @@ import { FilterPills } from '@/components/ui/filter-pills'
 import { DataList, type Column } from '@/components/ui/data-list'
 import { PageContainer } from '@/layout/PageContainer'
 import { PageHeader } from '@/layout/PageHeader'
+import { EmptyState } from '@/layout/EmptyState'
 import { keys, fetchers } from '@/lib/queries'
 import { useAgentZone } from '@/hooks/useAgentZone'
 import { formatCaller, formatTime } from '@/lib/formatters'
@@ -103,7 +104,7 @@ export default function EscalationsPage() {
     <PageContainer className="flex flex-1 flex-col">
       <PageHeader
         title="Escalations"
-        description="Questions your agent could not answer. Answer one and it never has to ask you again."
+        description="Questions your agent could not answer. Answer one and it never asks again."
         actions={
           waiting > 0 ? (
             <Button render={<Link to="/escalations/queue" />} nativeButton={false}>
@@ -113,7 +114,7 @@ export default function EscalationsPage() {
         }
       />
 
-      {(isLoading || total > 0) && (
+      {!isLoading && (
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
           <div className="relative w-field-lg shrink-0">
             <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -141,9 +142,11 @@ export default function EscalationsPage() {
           ))}
         </div>
       ) : total === 0 ? (
-        <p className="py-2 text-muted-foreground">
-          Nothing waiting on you. A question your agent cannot answer lands here.
-        </p>
+        <EmptyState
+          icon={AlertCircle}
+          title="No questions yet"
+          description="A question your agent cannot answer waits here for your answer."
+        />
       ) : rows.length === 0 ? (
         <p className="py-2 text-muted-foreground">Nothing matches that.</p>
       ) : (
