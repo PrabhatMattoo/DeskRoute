@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from 'react'
-import type { CallListItem } from '@receptionist/shared'
+import type { CallListItem } from '@/lib/api-types'
 import { Skeleton } from '@/components/ui/skeleton'
 import { StatusBadge } from '@/components/ui/status-badge'
 import { DataList, type Column } from '@/components/ui/data-list'

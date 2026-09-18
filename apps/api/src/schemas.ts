@@ -73,3 +73,23 @@ export const calendarSelectSchema = z.object({
   summary: z.string().min(1),
   timeZone: z.string().optional(),
 });
+
+/* Query schemas. Each falls back to its default rather than rejecting, since the
+   repositories these feed already treat an unknown value as the default. */
+
+export const metricsQuerySchema = z.object({
+  period: z.enum(["today", "7d", "30d"]).catch("30d").default("30d"),
+});
+
+export const callsQuerySchema = z.object({
+  limit: z.coerce.number().int().min(1).catch(50).default(50),
+  offset: z.coerce.number().int().min(0).catch(0).default(0),
+});
+
+export const escalationsQuerySchema = z.object({
+  status: z.enum(["pending", "resolved"]).catch("pending").default("pending"),
+});
+
+export const areaCodeQuerySchema = z.object({
+  areaCode: z.string().optional(),
+});

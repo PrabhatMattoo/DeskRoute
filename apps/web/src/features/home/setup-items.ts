@@ -1,4 +1,4 @@
-import type { AppSettings } from '@/lib/settings-types'
+import type { AppSettings } from '@/lib/api-types'
 
 export interface SetupItem {
   id: 'services' | 'hours' | 'calendar'

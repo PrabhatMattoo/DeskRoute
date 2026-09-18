@@ -5,9 +5,9 @@ import { disclosureFor, type AgentProfile } from '@receptionist/shared'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
-import { apiClient } from '@/lib/apiClient'
-import { keys } from '@/lib/queries'
-import type { AppSettings } from '@/lib/settings-types'
+import { client } from '@/lib/client'
+import { keys, ensureOk } from '@/lib/queries'
+import type { AppSettings } from '@/lib/api-types'
 import { Section, Row } from './SettingsList'
 import { SaveBar } from './SaveBar'
 import { useServerSeed } from './useServerSeed'
@@ -59,7 +59,8 @@ export function AgentPanel({ settings }: { settings: AppSettings }) {
   })
 
   const save = useMutation({
-    mutationFn: () => apiClient.patch('/admin/settings', { agent: form }),
+    mutationFn: () =>
+      client.admin.settings.$patch({ json: { agent: form } }).then(ensureOk),
     onSuccess: async () => {
       expectReseed()
       await qc.invalidateQueries({ queryKey: keys.settings })
@@ -71,7 +72,9 @@ export function AgentPanel({ settings }: { settings: AppSettings }) {
   /* A single boolean, valid on its own, so it commits when it moves. */
   const saveRecording = useMutation({
     mutationFn: (next: boolean) =>
-      apiClient.patch('/admin/settings', { business: { recordCalls: next } }),
+      client.admin.settings
+        .$patch({ json: { business: { recordCalls: next } } })
+        .then(ensureOk),
     onSuccess: (_data, next) => {
       qc.invalidateQueries({ queryKey: keys.settings })
       toast.success(next ? 'Calls are recorded' : 'Calls are no longer recorded')

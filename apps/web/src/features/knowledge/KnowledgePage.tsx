@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { BookOpen, Search, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
-import type { KnowledgeItem } from '@receptionist/shared'
+import type { KnowledgeItem } from '@/lib/api-types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -10,8 +10,8 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { PageContainer } from '@/layout/PageContainer'
 import { PageHeader } from '@/layout/PageHeader'
 import { EmptyState } from '@/layout/EmptyState'
-import { keys, fetchers } from '@/lib/queries'
-import { apiClient } from '@/lib/apiClient'
+import { keys, fetchers, ensureOk } from '@/lib/queries'
+import { client } from '@/lib/client'
 import { useAgentZone } from '@/hooks/useAgentZone'
 import { formatDate } from '@/lib/formatters'
 
@@ -27,7 +27,8 @@ export default function KnowledgePage() {
   })
 
   const del = useMutation({
-    mutationFn: (id: string) => apiClient.delete(`/admin/knowledge/${id}`),
+    mutationFn: (id: string) =>
+      client.admin.knowledge[':id'].$delete({ param: { id } }).then(ensureOk),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: keys.knowledge })
       toast.success('Answer deleted')

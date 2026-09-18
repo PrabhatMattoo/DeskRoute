@@ -12,26 +12,24 @@ import {
   releasePhoneNumber,
   InvalidAreaCode,
 } from "@receptionist/core/providers/telephony.js";
-import { phoneProvisionSchema } from "../../schemas.js";
+import { areaCodeQuerySchema, phoneProvisionSchema } from "../../schemas.js";
+import { body, query } from "../../validate.js";
 
 export const telephony = new Hono<AppEnv>()
-  .get("/search", async (c) => {
+  .get("/search", query(areaCodeQuerySchema), async (c) => {
     try {
-      return c.json(await searchPhoneNumbers(c.req.query("areaCode")));
+      return c.json(await searchPhoneNumbers(c.req.valid("query").areaCode));
     } catch (err) {
       if (err instanceof InvalidAreaCode) return c.json({ message: err.message }, 400);
       throw err;
     }
   })
-  .post("/provision", async (c) => {
+  .post("/provision", body(phoneProvisionSchema), async (c) => {
     const agentId = c.get("agentId");
     const agent = await getAgentById(agentId);
     if (!agent) return c.json({ error: "Agent not found" }, 404);
 
-    const parsed = phoneProvisionSchema.safeParse(await c.req.json());
-    if (!parsed.success) return c.json({ error: parsed.error.flatten() }, 400);
-
-    const purchased = await purchasePhoneNumber(parsed.data.phoneNumber);
+    const purchased = await purchasePhoneNumber(c.req.valid("json").phoneNumber);
     try {
       await addPhoneNumber({ agentId, e164: purchased.e164_format, provider: "livekit" });
     } catch (dbErr) {

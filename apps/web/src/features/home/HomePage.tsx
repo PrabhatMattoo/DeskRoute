@@ -3,8 +3,8 @@ import { useSearchParams } from 'react-router-dom'
 import { PageContainer } from '@/layout/PageContainer'
 import { PageHeader } from '@/layout/PageHeader'
 import { Skeleton } from '@/components/ui/skeleton'
-import { apiClient } from '@/lib/apiClient'
-import { keys, fetchers } from '@/lib/queries'
+import { client } from '@/lib/client'
+import { keys, fetchers, ensureOk } from '@/lib/queries'
 import { usePageReady } from '@/hooks/usePageData'
 import { formatPhone } from '@/lib/formatters'
 import type { Period } from '@/lib/types'
@@ -52,7 +52,9 @@ export default function HomePage() {
 
   const dismiss = useMutation({
     mutationFn: () =>
-      apiClient.patch('/admin/settings', { setup: { checklistDismissed: true } }),
+      client.admin.settings
+        .$patch({ json: { setup: { checklistDismissed: true } } })
+        .then(ensureOk),
     onSuccess: () => qc.invalidateQueries({ queryKey: keys.settings }),
   })
 

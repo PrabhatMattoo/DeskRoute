@@ -2,7 +2,7 @@ import { useState, useCallback, lazy, Suspense } from 'react'
 import { toast } from 'sonner'
 import { Mic, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { apiClient } from '@/lib/apiClient'
+import { client } from '@/lib/client'
 import type { TestSessionData } from './LiveControl'
 
 /* The LiveKit stack is half a megabyte and only needed once a test starts. */
@@ -19,8 +19,9 @@ export function TestAgentControl() {
   const start = useCallback(async () => {
     setLoading(true)
     try {
-      const { data } = await apiClient.post<TestSessionData>('/admin/agent/test')
-      setSessionData(data)
+      const res = await client.admin.agent.test.$post()
+      if (!res.ok) throw new Error(`agent test ${res.status}`)
+      setSessionData(await res.json())
     } catch (err: unknown) {
       console.error('[TestAgent] could not start a session:', err)
       toast.error('Could not start the test. Try again.')

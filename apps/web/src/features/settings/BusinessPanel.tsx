@@ -13,12 +13,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { isAxiosError } from 'axios'
-import { apiClient } from '@/lib/apiClient'
-import { keys } from '@/lib/queries'
+import { client } from '@/lib/client'
+import { keys, ensureOk, ApiError } from '@/lib/queries'
 import { formatMinutes, UNIT } from '@/lib/formatters'
 import { emptyService } from '@/lib/service-defaults'
-import type { AppSettings } from '@/lib/settings-types'
+import type { AppSettings } from '@/lib/api-types'
 import { Section, Row, SubRow } from './SettingsList'
 import { NumberField } from '@/components/ui/number-field'
 import { ExtraTime } from './ExtraTime'
@@ -126,19 +125,27 @@ export function BusinessPanel({ settings }: { settings: AppSettings }) {
       await Promise.all(
         server.services
           .filter((s) => !surviving.has(s.id))
-          .map((s) => apiClient.delete(`/admin/services/${s.id}`)),
+          .map((s) =>
+            client.admin.services[':id'].$delete({ param: { id: s.id } }).then(ensureOk),
+          ),
       )
       await Promise.all([
-        apiClient.patch('/admin/settings', { business: form }),
+        client.admin.settings.$patch({ json: { business: form } }).then(ensureOk),
         ...rows
           .filter((r) => {
             const before = r.id ? original.get(r.id) : undefined
             return before && serviceChanged(r, before)
           })
-          .map(({ id, ...draft }) => apiClient.patch(`/admin/services/${id}`, draft)),
+          .map(({ id, ...draft }) =>
+            client.admin.services[':id']
+              .$patch({ param: { id: id! }, json: draft })
+              .then(ensureOk),
+          ),
         ...rows
           .filter((r) => !r.id && r.name.trim())
-          .map(({ id: _id, ...draft }) => apiClient.post('/admin/services', draft)),
+          .map(({ id: _id, ...draft }) =>
+            client.admin.services.$post({ json: draft }).then(ensureOk),
+          ),
       ])
     },
     onSuccess: async () => {
@@ -147,9 +154,8 @@ export function BusinessPanel({ settings }: { settings: AppSettings }) {
       toast.success('Business saved')
     },
     onError: (err) => {
-      const conflict = isAxiosError(err) && err.response?.status === 409
-      const message = (err as { response?: { data?: { error?: string } } }).response?.data
-        ?.error
+      const conflict = err instanceof ApiError && err.status === 409
+      const message = err instanceof ApiError ? err.info : undefined
       toast.error(conflict && message ? message : 'Could not save. Try again.')
     },
   })

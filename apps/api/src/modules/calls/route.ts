@@ -2,11 +2,12 @@ import { Hono } from "hono";
 import type { AppEnv } from "../../types.js";
 import { listCalls, getCallById } from "@receptionist/core/repositories/calls.js";
 import { getPresignedRecordingUrl } from "@receptionist/core/providers/storage.js";
+import { callsQuerySchema } from "../../schemas.js";
+import { query } from "../../validate.js";
 
 export const calls = new Hono<AppEnv>()
-  .get("/", async (c) => {
-    const limit = Number(c.req.query("limit") ?? 50);
-    const offset = Number(c.req.query("offset") ?? 0);
+  .get("/", query(callsQuerySchema), async (c) => {
+    const { limit, offset } = c.req.valid("query");
     return c.json(await listCalls(c.get("agentId"), limit, offset));
   })
   .get("/:id", async (c) => {

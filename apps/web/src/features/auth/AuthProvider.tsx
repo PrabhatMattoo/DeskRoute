@@ -1,6 +1,6 @@
 import { useAuth } from '@clerk/react'
 import { useLayoutEffect } from 'react'
-import { setTokenGetter } from '@/lib/apiClient'
+import { setTokenGetter } from '@/lib/auth-token'
 
 /**
  * Wires Clerk's `getToken` into the API client. `useLayoutEffect` runs before

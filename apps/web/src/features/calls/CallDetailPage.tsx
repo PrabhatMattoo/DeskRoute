@@ -1,7 +1,7 @@
 import { Link, useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { ChevronLeft } from 'lucide-react'
-import type { CallDetail } from '@receptionist/shared'
+import type { CallDetail } from '@/lib/api-types'
 import { Skeleton } from '@/components/ui/skeleton'
 import { StatusBadge } from '@/components/ui/status-badge'
 import { PageContainer } from '@/layout/PageContainer'

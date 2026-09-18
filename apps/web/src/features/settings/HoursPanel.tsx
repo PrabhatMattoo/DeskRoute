@@ -15,10 +15,10 @@ import { Input } from '@/components/ui/input'
 import { NumberField } from '@/components/ui/number-field'
 import { DatePicker } from '@/components/ui/date-picker'
 import { Switch } from '@/components/ui/switch'
-import { apiClient } from '@/lib/apiClient'
-import { keys } from '@/lib/queries'
+import { client } from '@/lib/client'
+import { keys, ensureOk } from '@/lib/queries'
 import { formatDate, UNIT } from '@/lib/formatters'
-import type { AppSettings } from '@/lib/settings-types'
+import type { AppSettings } from '@/lib/api-types'
 import { Section, Row, SubRow } from './SettingsList'
 import { RecordDrawer } from './RecordDrawer'
 import { useRecordDraft } from './useRecordDraft'
@@ -141,9 +141,11 @@ export function HoursPanel({ settings }: { settings: AppSettings }) {
 
   const save = useMutation({
     mutationFn: () =>
-      apiClient.patch('/admin/settings', {
-        business: { businessHours: hours, bookingPolicy: policy },
-      }),
+      client.admin.settings
+        .$patch({
+          json: { business: { businessHours: hours, bookingPolicy: policy } },
+        })
+        .then(ensureOk),
     onSuccess: async () => {
       expectReseed()
       await qc.invalidateQueries({ queryKey: keys.settings })

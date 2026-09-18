@@ -8,6 +8,7 @@ import {
 import { listServices } from "@receptionist/core/repositories/services.js";
 import { storageConfigured } from "@receptionist/core/providers/storage.js";
 import { updateSettingsSchema } from "../../schemas.js";
+import { body } from "../../validate.js";
 
 export const settings = new Hono<AppEnv>()
   .get("/", async (c) => {
@@ -50,15 +51,13 @@ export const settings = new Hono<AppEnv>()
       },
     });
   })
-  .patch("/", async (c) => {
-    const parsed = updateSettingsSchema.safeParse(await c.req.json());
-    if (!parsed.success) return c.json({ error: parsed.error.flatten() }, 400);
-    const body = parsed.data;
+  .patch("/", body(updateSettingsSchema), async (c) => {
+    const input = c.req.valid("json");
 
     const patch: Parameters<typeof updateAgent>[1] = {};
 
-    if (body.business) {
-      const b = body.business;
+    if (input.business) {
+      const b = input.business;
       if (b.name !== undefined) patch.businessName = b.name;
       if (b.industry !== undefined) patch.industry = b.industry;
       if (b.timezone !== undefined) patch.timezone = b.timezone;
@@ -71,16 +70,16 @@ export const settings = new Hono<AppEnv>()
       if (b.recordCalls !== undefined) patch.recordCalls = b.recordCalls;
     }
 
-    if (body.agent) {
-      const a = body.agent;
+    if (input.agent) {
+      const a = input.agent;
       if (a.name !== undefined) patch.personaName = a.name;
       if (a.greeting !== undefined) patch.greeting = a.greeting;
       if (a.farewell !== undefined) patch.farewell = a.farewell;
       if (a.fallback !== undefined) patch.fallback = a.fallback;
     }
 
-    if (body.setup) {
-      const { checklistDismissed, hoursSeen } = body.setup;
+    if (input.setup) {
+      const { checklistDismissed, hoursSeen } = input.setup;
       if (checklistDismissed !== undefined) patch.checklistDismissed = checklistDismissed;
       if (hoursSeen !== undefined) patch.hoursSeen = hoursSeen;
     }

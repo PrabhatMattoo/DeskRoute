@@ -15,7 +15,8 @@ import {
   releasePhoneNumber,
   InvalidAreaCode,
 } from "@receptionist/core/providers/telephony.js";
-import { onboardingCreateSchema } from "../../schemas.js";
+import { areaCodeQuerySchema, onboardingCreateSchema } from "../../schemas.js";
+import { body, query } from "../../validate.js";
 
 export const onboarding = new Hono()
   .use("*", clerkMiddleware())
@@ -25,23 +26,22 @@ export const onboarding = new Hono()
     if (!auth?.userId) return c.json({ error: "Unauthorized" }, 401);
     return c.json({ onboarded: !!(await resolveAgentByClerkUserId(auth.userId)) });
   })
-  .get("/phone/search", async (c) => {
+  .get("/phone/search", query(areaCodeQuerySchema), async (c) => {
     const auth = getAuth(c);
     if (!auth?.userId) return c.json({ error: "Unauthorized" }, 401);
     try {
-      return c.json(await searchPhoneNumbers(c.req.query("areaCode")));
+      return c.json(await searchPhoneNumbers(c.req.valid("query").areaCode));
     } catch (err) {
       if (err instanceof InvalidAreaCode) return c.json({ message: err.message }, 400);
       throw err;
     }
   })
-  .post("/", async (c) => {
+  .post("/", body(onboardingCreateSchema), async (c) => {
     const auth = getAuth(c);
     if (!auth?.userId) return c.json({ error: "Unauthorized" }, 401);
 
-    const parsed = onboardingCreateSchema.safeParse(await c.req.json());
-    if (!parsed.success) return c.json({ error: parsed.error.flatten() }, 400);
-    const { phoneNumber, services, name, agentProfile, ...agentData } = parsed.data;
+    const { phoneNumber, services, name, agentProfile, ...agentData } =
+      c.req.valid("json");
 
     // Checked before the purchase, so a double submit cannot cost a number.
     if (await resolveAgentByClerkUserId(auth.userId)) {

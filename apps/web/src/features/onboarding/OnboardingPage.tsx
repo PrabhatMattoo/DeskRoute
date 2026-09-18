@@ -2,8 +2,8 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { useQueryClient } from '@tanstack/react-query'
-import { apiClient } from '@/lib/apiClient'
-import { keys } from '@/lib/queries'
+import { client } from '@/lib/client'
+import { keys, ApiError, ensureOk } from '@/lib/queries'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -39,26 +39,27 @@ export default function OnboardingPage() {
     if (!ready || submitting) return
     setSubmitting(true)
     try {
-      await apiClient.post('/onboarding', {
-        name: name.trim(),
-        industry: industry.trim(),
-        timezone,
-        phoneNumber,
-        agentProfile: {
-          name: 'Your agent',
-          greeting: `Thanks for calling ${name.trim()}. How can I help?`,
-          farewell: 'Thanks for calling. Have a good day.',
-          fallback:
-            'I am not sure about that one, but I will pass it on and someone will get back to you.',
+      const res = await client.onboarding.$post({
+        json: {
+          name: name.trim(),
+          industry: industry.trim(),
+          timezone,
+          phoneNumber: phoneNumber!,
+          agentProfile: {
+            name: 'Your agent',
+            greeting: `Thanks for calling ${name.trim()}. How can I help?`,
+            farewell: 'Thanks for calling. Have a good day.',
+            fallback:
+              'I am not sure about that one, but I will pass it on and someone will get back to you.',
+          },
         },
       })
+      await ensureOk(res)
       // The gate caches its answer for the session, so it has to be told.
       await qc.invalidateQueries({ queryKey: keys.session })
       navigate('/')
     } catch (err: unknown) {
-      const message =
-        (err as { response?: { data?: { message?: string } } })?.response?.data
-          ?.message || 'Setup failed. Try again.'
+      const message = (err instanceof ApiError && err.info) || 'Setup failed. Try again.'
       toast.error(message)
     } finally {
       setSubmitting(false)

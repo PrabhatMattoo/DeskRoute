@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Check, Search, X } from 'lucide-react'
 import type { AvailableNumber } from '@receptionist/shared'
-import { apiClient } from '@/lib/apiClient'
+import { client } from '@/lib/client'
+import { ApiError, fail } from '@/lib/queries'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -32,11 +33,13 @@ export function NumberSearch({
     setLoading(true)
     setError(null)
     try {
-      const res = await apiClient.get<AvailableNumber[]>(
-        `/onboarding/phone/search${code ? `?areaCode=${code}` : ''}`,
-      )
-      setNumbers(res.data)
-      if (res.data.length === 0) {
+      const res = await client.onboarding.phone.search.$get({
+        query: code ? { areaCode: code } : {},
+      })
+      if (!res.ok) return fail(res)
+      const data = await res.json()
+      setNumbers(data)
+      if (data.length === 0) {
         setError(
           code
             ? `No numbers free in ${code}. Try another area code, or leave it blank.`
@@ -44,8 +47,7 @@ export function NumberSearch({
         )
       }
     } catch (err: unknown) {
-      const message = (err as { response?: { data?: { message?: string } } })?.response
-        ?.data?.message
+      const message = err instanceof ApiError ? err.info : undefined
       setError(message ?? 'Could not reach the number list. Try again.')
       setNumbers([])
     } finally {

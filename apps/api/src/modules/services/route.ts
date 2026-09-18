@@ -9,27 +9,24 @@ import {
 } from "@receptionist/core/repositories/services.js";
 import { serviceDraftSchema } from "@receptionist/shared";
 import { serviceUpdateSchema } from "../../schemas.js";
+import { body } from "../../validate.js";
 
 export const services = new Hono<AppEnv>()
   .get("/", async (c) => c.json(await listServices(c.get("agentId"))))
-  .post("/", async (c) => {
-    const parsed = serviceDraftSchema.safeParse(await c.req.json());
-    if (!parsed.success) return c.json({ error: parsed.error.flatten() }, 400);
+  .post("/", body(serviceDraftSchema), async (c) => {
     try {
-      return c.json(await createService(c.get("agentId"), parsed.data), 201);
+      return c.json(await createService(c.get("agentId"), c.req.valid("json")), 201);
     } catch (err) {
       if (err instanceof DuplicateServiceName) return c.json({ error: err.message }, 409);
       throw err;
     }
   })
-  .patch("/:id", async (c) => {
-    const parsed = serviceUpdateSchema.safeParse(await c.req.json());
-    if (!parsed.success) return c.json({ error: parsed.error.flatten() }, 400);
+  .patch("/:id", body(serviceUpdateSchema), async (c) => {
     try {
       const updated = await updateService(
         c.get("agentId"),
         c.req.param("id"),
-        parsed.data,
+        c.req.valid("json"),
       );
       if (!updated) return c.json({ error: "Service not found" }, 404);
       return c.json(updated);

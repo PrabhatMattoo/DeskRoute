@@ -1,6 +1,6 @@
 import { Link, useSearchParams } from 'react-router-dom'
 import { ArrowRight } from 'lucide-react'
-import type { DashboardMetrics } from '@receptionist/shared'
+import type { DashboardMetrics } from '@/lib/api-types'
 import { FilterPills } from '@/components/ui/filter-pills'
 import type { Period } from '@/lib/types'
 

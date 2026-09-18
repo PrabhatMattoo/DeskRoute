@@ -3,14 +3,14 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ChevronLeft, ChevronRight, Inbox } from 'lucide-react'
 import { toast } from 'sonner'
-import type { EscalationItem } from '@receptionist/shared'
+import type { EscalationItem } from '@/lib/api-types'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Skeleton } from '@/components/ui/skeleton'
 import { PageContainer } from '@/layout/PageContainer'
 import { EmptyState } from '@/layout/EmptyState'
-import { apiClient } from '@/lib/apiClient'
-import { keys, fetchers } from '@/lib/queries'
+import { client } from '@/lib/client'
+import { keys, fetchers, ApiError, ensureOk } from '@/lib/queries'
 import { useAgentZone } from '@/hooks/useAgentZone'
 import { formatCaller, formatDateTime } from '@/lib/formatters'
 
@@ -55,7 +55,12 @@ export default function QueuePage() {
 
   const resolve = useMutation({
     mutationFn: (text: string) =>
-      apiClient.post(`/admin/escalations/${current?.id}/resolve`, { answer: text }),
+      client.admin.escalations[':id'].resolve
+        .$post({
+          param: { id: current!.id },
+          json: { answer: text },
+        })
+        .then(ensureOk),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: keys.escalationsAll })
       qc.invalidateQueries({ queryKey: keys.metricsAll })
@@ -70,8 +75,7 @@ export default function QueuePage() {
     },
     onError: (err: unknown) => {
       const message =
-        (err as { response?: { data?: { message?: string } } })?.response?.data
-          ?.message || 'Could not save that answer. Try again.'
+        (err instanceof ApiError && err.info) || 'Could not save that answer. Try again.'
       toast.error(message)
     },
   })

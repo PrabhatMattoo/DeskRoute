@@ -11,6 +11,7 @@ import {
   forgetGoogleOAuthToken,
 } from "@receptionist/core/providers/googleAuth.js";
 import { calendarSelectSchema } from "../../schemas.js";
+import { body } from "../../validate.js";
 
 export const calendar = new Hono<AppEnv>()
   .get("/list", async (c) => {
@@ -27,10 +28,8 @@ export const calendar = new Hono<AppEnv>()
       throw err;
     }
   })
-  .patch("/", async (c) => {
-    const parsed = calendarSelectSchema.safeParse(await c.req.json());
-    if (!parsed.success) return c.json({ error: parsed.error.flatten() }, 400);
-    const { calendarId, summary, timeZone } = parsed.data;
+  .patch("/", body(calendarSelectSchema), async (c) => {
+    const { calendarId, summary, timeZone } = c.req.valid("json");
 
     // The display name is stored beside the id so Settings renders a name
     // without a round trip to Google on every load.

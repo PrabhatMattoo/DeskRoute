@@ -22,10 +22,10 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet'
-import { apiClient } from '@/lib/apiClient'
-import { keys, fetchers } from '@/lib/queries'
+import { client } from '@/lib/client'
+import { keys, fetchers, ensureOk } from '@/lib/queries'
 import { formatPhone } from '@/lib/formatters'
-import type { AppSettings } from '@/lib/settings-types'
+import type { AppSettings } from '@/lib/api-types'
 import { cn } from '@/lib/utils'
 import { Section, SubRow, MEASURE } from './SettingsList'
 
@@ -90,11 +90,15 @@ export function ConnectionsPanel({ settings }: { settings: AppSettings }) {
 
   const selectCalendar = useMutation({
     mutationFn: (calendar: CalendarOption) =>
-      apiClient.patch('/admin/calendar', {
-        calendarId: calendar.id,
-        summary: calendar.summary,
-        timeZone: calendar.timeZone,
-      }),
+      client.admin.calendar
+        .$patch({
+          json: {
+            calendarId: calendar.id,
+            summary: calendar.summary,
+            timeZone: calendar.timeZone,
+          },
+        })
+        .then(ensureOk),
     onSuccess: async () => {
       await qc.invalidateQueries({ queryKey: keys.settings })
       setChoice(null)
@@ -104,7 +108,7 @@ export function ConnectionsPanel({ settings }: { settings: AppSettings }) {
   })
 
   const disconnect = useMutation({
-    mutationFn: () => apiClient.delete('/admin/calendar'),
+    mutationFn: () => client.admin.calendar.$delete().then(ensureOk),
     onSuccess: async () => {
       await qc.invalidateQueries({ queryKey: keys.settings })
       await qc.invalidateQueries({ queryKey: keys.calendarList })

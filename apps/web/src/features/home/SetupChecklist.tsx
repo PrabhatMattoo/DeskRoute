@@ -62,6 +62,7 @@ export function SetupChecklist({ items }: { items: SetupItem[] }) {
                     size="sm"
                     variant={item.id === next?.id ? 'default' : 'outline'}
                     render={<Link to={item.to} />}
+                    nativeButton={false}
                   >
                     {item.action}
                   </Button>
@@ -99,7 +100,11 @@ export function SetupBanner({
         <span className="text-muted-foreground">still needs {list}.</span>
       </p>
       <div className="flex shrink-0 items-center gap-2">
-        <Button size="sm" render={<Link to="/settings?tab=business" />}>
+        <Button
+          size="sm"
+          render={<Link to="/settings?tab=business" />}
+          nativeButton={false}
+        >
           Finish setup
         </Button>
         <Button variant="ghost" size="icon-sm" aria-label="Hide this" onClick={onDismiss}>
